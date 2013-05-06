@@ -28,9 +28,9 @@ describe "Math::GreekCalculations::iv" do
 
     it "should calculate the iv" do
       iv_pct(@call_opts.merge(:option_strike =>  800.00, :option_price => 751.50)).should be_nil
-      iv_pct(@call_opts.merge(:option_strike => 1555.00, :option_price => 6.00)).should === 6.7
-      iv_pct(@call_opts.merge(:option_strike => 1560.00, :option_price => 3.70)).should === 7.5
-      iv_pct(@call_opts.merge(:option_strike => 1565.00, :option_price => 2.00)).should === 7.8
+      iv_pct(@call_opts.merge(:option_strike => 1555.00, :option_price =>   6.00)).should === 6.68
+      iv_pct(@call_opts.merge(:option_strike => 1560.00, :option_price =>   3.70)).should === 7.53
+      iv_pct(@call_opts.merge(:option_strike => 1565.00, :option_price =>   2.00)).should === 7.80
     end
   end
   
@@ -44,10 +44,10 @@ describe "Math::GreekCalculations::iv" do
     end
 
     it "should calculate the iv" do
-      iv_pct(@put_opts.merge(:option_strike =>  800.00, :option_price => 0.00)).should be_nil
-      iv_pct(@put_opts.merge(:option_strike => 1555.00, :option_price => 8.00)).should === 17.4
-      iv_pct(@put_opts.merge(:option_strike => 1560.00, :option_price => 10.40)).should === 17.4
-      iv_pct(@put_opts.merge(:option_strike => 1565.00, :option_price => 13.60)).should === 18.1
+      iv_pct(@put_opts.merge(:option_strike =>  800.00, :option_price =>  0.00)).should be_nil
+      iv_pct(@put_opts.merge(:option_strike => 1555.00, :option_price =>  8.00)).should === 17.42
+      iv_pct(@put_opts.merge(:option_strike => 1560.00, :option_price => 10.40)).should === 17.41
+      iv_pct(@put_opts.merge(:option_strike => 1565.00, :option_price => 13.60)).should === 18.12
     end
   end
 end

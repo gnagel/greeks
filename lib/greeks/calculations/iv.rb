@@ -12,36 +12,39 @@ module Math
       ].each do |required_key|
         raise ArgumentError, "Missing value for key=#{required_key} in opts=#{opts.inspect}" if opts[required_key].nil?
       end
-      
+
+
       e    = 0.0001
       n    = 13
       pLim = [0.005, 0.01 * opts[:option_price]].min;
+
+      v    = Math.sqrt((Math.log(opts[:stock_price] / opts[:option_strike]) + (opts[:federal_reserve_interest_rate] - opts[:stock_dividend_rate]) * opts[:option_expires_pct_year]).abs * 2 / opts[:option_expires_pct_year])
+      v    = 0.1 if (v <= 0)
+
+      c    = iv_approximation(opts.merge(:volatility_assumption => v))
+
+      return v if ((opts[:option_price] - c).abs < pLim)
+
+      calc_vega = vega(opts.merge(:volatility_assumption => v))
+      v1 = v - (c - opts[:option_price]) / calc_vega
       step = 1
+      while ((v - v1).abs > e && step < n)
+        v         = v1
+        c         = iv_approximation(opts.merge(:volatility_assumption => v))
+        return v if ((opts[:option_price] - c).abs < pLim)
 
-      iv_volatility_assumption_seed!(opts)
-      
-      iv_approximation!(opts)
-      return opts[:volatility_assumption] if iv_terminal_value?(opts, pLim)
+        calc_vega = vega(opts.merge(:volatility_assumption => v))
+        v1        = v - (c - opts[:option_price]) / calc_vega
+        return v1 if (v1 < 0)
 
-      vega!(opts)
-      iv_volatility_assumption_calc!(opts)
-
-      while ((opts[:volatility_assumption] - opts[:volatility_assumption]).abs > e && step < n)
-        iv_approximation!(opts)
-        return opts[:volatility_assumption] if iv_terminal_value?(opts, pLim)
-
-        vega!(opts)
-        iv_volatility_assumption_calc!(opts)
-        return opts[:volatility_assumption] if (opts[:volatility_assumption] < 0)
-
-        step += 1
+        step= step + 1
       end
 
-      return opts[:volatility_assumption] if (step < n)
+      return v1 if (step < n)
 
-      iv_approximation!(opts)
-      opts.delete(:volatility_assumption) unless iv_terminal_value?(opts, pLim)
-      opts[:volatility_assumption]
+      c = iv_approximation(opts.merge(:volatility_assumption => v1))
+      return v1 if ((opts[:option_price] - c).abs < pLim)
+      return nil
     end
     
 
@@ -51,30 +54,6 @@ module Math
       
       (iv_value * 100).round(2)
     end
-      
     
-    def iv_terminal_value?(opts, pLim)
-      (opts[:option_price] - opts[:iv_approximation]).abs < pLim
-    end
-
-    
-    def iv_volatility_assumption_seed!(opts)
-      opts[:volatility_assumption] = Math.sqrt(
-        (
-          Math.log(opts[:stock_price] / opts[:option_price]) + 
-          (opts[:federal_reserve_interest_rate] - opts[:stock_dividend_rate]) * 
-          opts[:option_expires_pct_year]
-        ).abs * 
-        2 / opts[:option_expires_pct_year]
-        )
-      opts[:volatility_assumption] = 0.1 if (opts[:volatility_assumption] <= 0)
-      
-      opts[:volatility_assumption]
-    end
-
-
-    def iv_volatility_assumption_calc!(opts)
-      opts[:volatility_assumption] = opts[:volatility_assumption] - (opts[:iv_approximation] - opts[:option_price]) / opts[:vega]
-    end
   end
 end
