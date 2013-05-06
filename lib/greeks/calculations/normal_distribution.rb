@@ -1,5 +1,6 @@
 module Math
   module GreekCalculations
+    # Moddeled after the Excel NORMSDIST function
     def normal_distribution(value)
       p  =  0.2316419
       b1 =  0.319381530
@@ -15,6 +16,12 @@ module Math
 
       cum = 1 - cum if (value < 0)
       cum
+    end
+    
+
+    # Normal distribution function (Gaussian bell curve)
+    def normal_distribution_gaussian(value)
+      Math.exp(-0.5 * z * z) / Math.sqrt(2 * Math::PI)
     end
   end
 end
