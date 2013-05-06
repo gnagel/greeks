@@ -1,5 +1,10 @@
 module Math
   module GreekCalculations
+    def vega!(opts = {})
+      opts[:vega] = vega(opts)
+    end
+
+
     def vega(opts = {})
       [
         :volatility_assumption,

@@ -1,5 +1,10 @@
 module Math
   module GreekCalculations
+    def iv_approximation!(opts = {})
+      opts[:iv_approximation] = iv_approximation(opts)
+    end
+
+      
     def iv_approximation(opts = {})
       [
         :volatility_assumption,
