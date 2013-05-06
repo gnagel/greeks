@@ -31,9 +31,9 @@ module Math
 
       if (opts[:option_type] === :call)
           rho = 0.01 * part1 * part2 * ndE
-      Else
+      else
           rho = -0.01 * part1 * part2 * (1 - ndE)
-      End If
+      end
       
       rho
     end

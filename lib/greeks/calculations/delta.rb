@@ -20,7 +20,7 @@ module Math
       sqrt_expires = Math.sqrt(opts[:option_expires_pct_year])
       iv_sqrt_expires = opts[:iv] * sqrt_expires
 
-      d1 = normal_distribution((Math.log(opts[:stock_price] / opts[:option_strike]) + opts[:federal_reserve_interest_rate] * t) /  iv_sqrt_expires + 0.5 * iv_sqrt_expires)
+      d1 = normal_distribution((Math.log(opts[:stock_price] / opts[:option_strike]) + opts[:federal_reserve_interest_rate] * opts[:option_expires_pct_year]) /  iv_sqrt_expires + 0.5 * iv_sqrt_expires)
       
       d1 = d1 - 1 if opts[:option_type] === :put
       

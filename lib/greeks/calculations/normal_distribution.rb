@@ -21,7 +21,7 @@ module Math
 
     # Normal distribution function (Gaussian bell curve)
     def normal_distribution_gaussian(value)
-      Math.exp(-0.5 * z * z) / Math.sqrt(2 * Math::PI)
+      Math.exp(-0.5 * value * value) / Math.sqrt(2 * Math::PI)
     end
   end
 end
