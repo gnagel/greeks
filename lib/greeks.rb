@@ -1,6 +1,8 @@
 require_relative 'greeks/calculations/delta'
 require_relative 'greeks/calculations/gamma'
 require_relative 'greeks/calculations/iv'
+require_relative 'greeks/calculations/iv_approximation'
+require_relative 'greeks/calculations/normal_distribution'
 require_relative 'greeks/calculations/theta'
 require_relative 'greeks/calculations/rho'
 require_relative 'greeks/calculations/vega'

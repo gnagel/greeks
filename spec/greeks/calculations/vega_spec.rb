@@ -32,6 +32,3 @@ describe "Math::GreekCalculations::vega" do
     vega(@opts.merge(:option_strike => 1565.0, :volatility_assumption => 0.9780351979867221)).should === 56.38081822198368
   end
 end
-
-
-
