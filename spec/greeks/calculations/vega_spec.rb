@@ -6,12 +6,12 @@ describe "Math::GreekCalculations::vega" do
 
   before(:all) {
     @opts                     = {
-      :volatility_assumption         => 1.6067241201549014,
+      :iv                            => 7.7,
+      :stock_price                   => 1614.42,
+      :option_type                   => :call,
+      :option_strike                 => 1615.00,
+      :option_expires_pct_year       => (7.0 + 1.0) / 365.0,
       :federal_reserve_interest_rate => 0.0,
-      :stock_dividend_rate           => 0.0,
-      :stock_price                   => 1558.86,
-      :option_strike                 => 800.0,
-      :option_expires_pct_year       => (2.0 + 1.0) / 365.0
     }
   }
   
@@ -20,15 +20,13 @@ describe "Math::GreekCalculations::vega" do
   end
 
   it "should calculate the vega" do
-    vega(@opts.merge(:option_strike =>  800.0, :volatility_assumption => 1.6067241201549014)).should === 0.0011241039628403465
-    vega(@opts.merge(:option_strike => 1555.0, :volatility_assumption => 0.7767120139768976)).should === 56.24120981690763
-    vega(@opts.merge(:option_strike => 1555.0, :volatility_assumption => 0.17527391126836678)).should === 55.62798047373135
-    vega(@opts.merge(:option_strike => 1555.0, :volatility_assumption => 0.7767120139768976)).should === 56.24120981690763
-    vega(@opts.merge(:option_strike => 1555.0, :volatility_assumption => 0.17527391126836678)).should === 55.62798047373135
-    vega(@opts.merge(:option_strike => 1560.0, :volatility_assumption => 0.42176476544518277)).should === 56.38081822198368
-    vega(@opts.merge(:option_strike => 1560.0, :volatility_assumption => 0.42176476544518277)).should === 56.38081822198368
-    vega(@opts.merge(:option_strike => 1565.0, :volatility_assumption => 0.9780351979867221)).should === 56.38081822198368
-    vega(@opts.merge(:option_strike => 1565.0, :volatility_assumption => 0.1841966933132152)).should === 54.94608639051165
-    vega(@opts.merge(:option_strike => 1565.0, :volatility_assumption => 0.9780351979867221)).should === 56.38081822198368
+    expect {vega(@opts.merge(:option_strike => 1650.00, :iv => nil))}.to raise_error ArgumentError
+    vega(@opts.merge(:option_strike => 1615.00, :iv => 7.7)).should === 1.04
+    vega(@opts.merge(:option_strike => 1620.00, :iv => 7.7)).should === 1.43
+    vega(@opts.merge(:option_strike => 1625.00, :iv => 7.6)).should === 1.93
+    vega(@opts.merge(:option_strike => 1630.00, :iv => 7.6)).should === 2.53
+    vega(@opts.merge(:option_strike => 1635.00, :iv => 7.6)).should === 3.24
+    vega(@opts.merge(:option_strike => 1640.00, :iv => 7.8)).should === 3.96
+    vega(@opts.merge(:option_strike => 1645.00, :iv => 7.8)).should === 4.90
   end
 end
