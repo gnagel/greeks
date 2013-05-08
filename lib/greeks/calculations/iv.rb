@@ -7,7 +7,7 @@ module Math
         :option_type,
         :option_price,
         :option_strike,
-        :option_expires_pct_year,
+        :option_expires_in_days,
         :federal_reserve_interest_rate
       ].each do |required_key|
         raise ArgumentError, "Missing value for key=#{required_key} in opts=#{opts.inspect}" if opts[required_key].nil?
@@ -17,6 +17,9 @@ module Math
       e    = 0.0001
       n    = 13
       pLim = [0.005, 0.01 * opts[:option_price]].min;
+      
+      opts[:option_expires_pct_year]  ||= (opts[:option_expires_in_days] + 1.0) / 365.0
+      opts[:option_expires_pct_year0] ||= (opts[:option_expires_in_days] + 2.0) / 365.0
 
       v    = Math.sqrt((Math.log(opts[:stock_price] / opts[:option_strike]) + (opts[:federal_reserve_interest_rate] - opts[:stock_dividend_rate]) * opts[:option_expires_pct_year]).abs * 2 / opts[:option_expires_pct_year])
       v    = 0.1 if (v <= 0)

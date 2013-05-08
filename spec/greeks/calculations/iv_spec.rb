@@ -9,7 +9,7 @@ describe "Math::GreekCalculations::iv" do
       :federal_reserve_interest_rate => 0.0,
       :stock_dividend_rate           => 0.0,
       :stock_price                   => 1558.86,
-      :option_expires_pct_year       => (2.0 + 1.0) / 365.0,
+      :option_expires_in_days        => 2.0,
       :option_type                   => nil,
       :option_strike                 => 1555.00,
       :option_price                  => 6.00,
