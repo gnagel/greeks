@@ -1,7 +1,12 @@
 module Math
   module Greeks
     class CalculatorAll
-      SQRT_2PI = Math.sqrt(2 * Math.PI)
+      SQRT_2PI = Math::sqrt(2 * Math::PI)
+      
+      class GreekCalculations
+        extend  Math::GreekCalculations
+      end
+      
       
       attr_accessor :stock_price
       attr_accessor :stock_dividend_rate
@@ -10,6 +15,16 @@ module Math
       attr_accessor :option_strike
       attr_accessor :option_expires_in_days
       attr_accessor :federal_reserve_interest_rate
+      
+      def initialize(opts = {})
+        @stock_price                   = opts[:stock_price]
+        @stock_dividend_rate           = opts[:stock_dividend_rate]
+        @option_type                   = opts[:option_type]
+        @option_price                  = opts[:option_price]
+        @option_strike                 = opts[:option_strike]
+        @option_expires_in_days        = opts[:option_expires_in_days]
+        @federal_reserve_interest_rate = opts[:federal_reserve_interest_rate]
+      end
 
       def option_expires_pct_year
         @option_expires_pct_year ||= (option_expires_in_days + 1.0) / 365.0
@@ -20,7 +35,7 @@ module Math
       end
       
       def option_expires_pct_year_sqrt
-        @option_expires_pct_year_sqrt ||= Math.sqrt(option_expires_pct_year)
+        @option_expires_pct_year_sqrt ||= Math::sqrt(option_expires_pct_year)
       end
       
       def stock_dividend_rate_f
@@ -45,9 +60,9 @@ module Math
       
       def premium_value
         if (option_type === :call)
-          @premium_value ||= Math.max(stock_price - option_strike, 0)
+          @premium_value ||= max(stock_price - option_strike, 0)
         else
-          @premium_value ||= Math.max(option_strike - stock_price, 0)
+          @premium_value ||= max(option_strike - stock_price, 0)
         end
 
         @premium_value
@@ -64,7 +79,7 @@ module Math
       def annualized_premium_value
         return nil if option_price.nil? || option_price < 0
         
-        @annualized_premium_value ||= 100 * Math.log(1 + option_price / option_strike) / option_expires_pct_year;
+        @annualized_premium_value ||= 100 * Math::log(1 + option_price / option_strike) / option_expires_pct_year;
 
         value_if_gte_0(@annualized_premium_value)
       end
@@ -72,7 +87,7 @@ module Math
       def annualized_time_value
         return nil if time_value.nil?
         
-        @annualized_time_value ||= 100 * Math.log(1.0 + time_value / option_strike) / option_expires_pct_year
+        @annualized_time_value ||= 100 * Math::log(1.0 + time_value / option_strike) / option_expires_pct_year
         
         value_if_gte_0(@annualized_time_value)
       end
@@ -80,13 +95,13 @@ module Math
       def iv
         return nil if option_price.nil? || option_price < 0
         
-        @iv ||= Math::GreekCalculations::iv(
-          :stock_price => stock_price,
-          :stock_dividend_rate => stock_dividend_rate,
-          :option_type => option_type,
-          :option_price => option_price,
-          :option_strike => option_strike,
-          :option_expires_in_days => option_expires_in_days,
+        @iv ||= GreekCalculations.iv(
+          :stock_price                   => stock_price,
+          :stock_dividend_rate           => stock_dividend_rate,
+          :option_type                   => option_type,
+          :option_price                  => option_price,
+          :option_strike                 => option_strike,
+          :option_expires_in_days        => option_expires_in_days,
           :federal_reserve_interest_rate => federal_reserve_interest_rate
         )
         
@@ -145,24 +160,37 @@ module Math
         @theta
       end
       
-      def delta_pct_per_pp
-        delta * stock_price / option_price unless delta.nil?
-      end
-      
-      def gamma_pp_per_pp
-      	gamma * stock_price / delta unless gamma.nil?
-      end
-      
-      def vega_pct_per_pp
-      	vega * iv * 100 / option_price unless vega.nil?
-      end
+      def to_hash
+        hash = {
+          :federal_reserve_interest_rate => federal_reserve_interest_rate,
+          :stock_dividend_rate           => stock_dividend_rate,
+          :stock_price                   => stock_price,
+          :option_expires_in_days        => option_expires_in_days,
+          :option_type                   => option_type,
+          :option_strike                 => option_strike,
+          :option_price                  => option_price,
+          :iv            => nil,
+          :delta         => nil,
+          :gamma         => nil, 
+          :vega          => nil, 
+          :rho           => nil,
+          :theta         => nil,
+          :deta_vs_theta => nil,
+        }
+
+        hash[:iv]            = iv * 100 unless iv.nil?
+        hash[:delta]         = delta * stock_price / option_price unless delta.nil?
+        hash[:gamma]         = gamma * stock_price / delta unless gamma.nil?
+        hash[:vega]          = vega * iv * 100 / option_price unless vega.nil?
+        hash[:rho]           = rho * 100 / option_price unless rho.nil?
+        hash[:theta]         = theta * 100 / option_price unless theta.nil?
+        hash[:deta_vs_theta] = hash[:delta] / hash[:theta] unless hash[:delta].nil? || hash[:theta].nil?
         
-      def rho_pct_per_pp
-        rho * 100 / option_price unless rho.nil?
-      end
-      
-      def theta_pct_per_day
-        theta * 100 / option_price unless theta.nil?
+        [:iv, :delta, :gamma, :vega, :rho, :theta, :deta_vs_theta].each do |key|
+          hash[key] &&= hash[key].round(2)
+        end
+
+        hash
       end
 
       # Delta/Theta
@@ -170,24 +198,21 @@ module Math
       def delta_vs_theta
       	delta / theta unless theta.nil?
       end
-        
-      
-      private
       
       def p1
-        @p1 ||= stock_price * Math.exp(-stock_dividend_rate_f * option_expires_pct_year)
+        @p1 ||= stock_price * Math::exp(-stock_dividend_rate_f * option_expires_pct_year)
       end
       
       def eqt
-        @eqt ||= Math.exp(-stock_dividend_rate_f * option_expires_pct_year)
+        @eqt ||= Math::exp(-stock_dividend_rate_f * option_expires_pct_year)
       end
       
       def du
-        @du ||= Math.log(stock_price / option_strike) + (federal_reserve_interest_rate_f - stock_dividend_rate_f) * option_expires_pct_year
+        @du ||= Math::log(stock_price / option_strike) + (federal_reserve_interest_rate_f - stock_dividend_rate_f) * option_expires_pct_year
       end
       
       def x1
-        @x1 ||= option_strike * Math.exp(-federal_reserve_interest_rate_f * option_expires_pct_year)
+        @x1 ||= option_strike * Math::exp(-federal_reserve_interest_rate_f * option_expires_pct_year)
       end
       
       def d1
@@ -200,9 +225,9 @@ module Math
 
       def d1_normal_distribution
         if (option_type === :call)
-          @d1_normal_distribution ||= Math::GreekCalculations::normal_distribution(d1)
+          @d1_normal_distribution ||= GreekCalculations.normal_distribution(d1)
         else
-          @d1_normal_distribution ||= Math::GreekCalculations::normal_distribution(-d1)
+          @d1_normal_distribution ||= GreekCalculations.normal_distribution(-d1)
         end
 
         @d1_normal_distribution
@@ -210,20 +235,28 @@ module Math
 
       def d2_normal_distribution
         if (option_type === :call)
-          @d2_normal_distribution ||= Math::GreekCalculations::normal_distribution(d2)
+          @d2_normal_distribution ||= GreekCalculations.normal_distribution(d2)
         else
-          @d2_normal_distribution ||= Math::GreekCalculations::normal_distribution(-d2)
+          @d2_normal_distribution ||= GreekCalculations.normal_distribution(-d2)
         end
 
         @d2_normal_distribution
       end
 
       def nd1
-        @nd1 |= Math.exp(-0.5 * d1 * d1) / SQRT_2PI
+        @nd1 ||= Math::exp(-0.5 * d1 * d1) / SQRT_2PI
       end
       
       def value_if_gte_0(value)
         value.nil? || value.to_f < 0.0 ? nil : value
+      end
+      
+      def max(a, b)
+        [a, b].max
+      end
+      
+      def min(a, b)
+        [a, b].min
       end
     end
   end
