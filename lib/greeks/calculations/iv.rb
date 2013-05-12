@@ -33,13 +33,18 @@ module Math
 
 
     def iv_option_price(stock_price, option_strike, option_expires_pct_year, volatility_guess, federal_reserve_interest_rate_f, stock_dividend_rate_f, option_type, var_du, var_price_vs_rate_vs_expires)
-    	var_x1 = option_strike * Math.exp(-volatility_guess * option_expires_pct_year)
-    	var_d1 = (var_du + volatility_guess * volatility_guess * option_expires_pct_year / 2) / (volatility_guess * Math::sqrt(option_expires_pct_year))
-    	var_d2 = var_d1 - volatility_guess * Math::sqrt(option_expires_pct_year)
-    	if (option_type === :call)
+      var_sq_time = Math::sqrt(option_expires_pct_year)
+    	var_x1       = option_strike * Math.exp(-federal_reserve_interest_rate_f * option_expires_pct_year)
+    	var_d1       = (var_du + volatility_guess * volatility_guess * option_expires_pct_year / 2) / (volatility_guess * var_sq_time)
+    	var_d2       = var_d1 - volatility_guess * var_sq_time
+      
+      case option_type
+      when :call
     		return var_price_vs_rate_vs_expires * normal_distribution(var_d1) - var_x1 * normal_distribution(var_d2)
-    	else
+      when :put
     		return var_x1 * normal_distribution(-var_d2) - var_price_vs_rate_vs_expires * normal_distribution(-var_d1)
+      else
+        raise "Invalid option_type = #{option_type.inspect}"
       end
     end
     

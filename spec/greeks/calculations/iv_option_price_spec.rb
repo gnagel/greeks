@@ -35,14 +35,14 @@ describe "Math::GreekCalculations::iv_option_price" do
   
     context "0% interest" do
       let(:federal_reserve_interest_rate_f) { 0.00 }
-      let(:expected) { 1.9741254870839384 }
+      let(:expected) { 1.9741254870839349 }
       
       it { var_option_price().should === expected }
     end
   
     context "0.02% interest" do
       let(:federal_reserve_interest_rate_f) { 0.0002 }
-      let(:expected) { 1.974928148944329 }
+      let(:expected) { 1.9749281489443273 }
       
       it { var_option_price().should === expected }
     end
@@ -53,14 +53,14 @@ describe "Math::GreekCalculations::iv_option_price" do
   
     context "0% interest" do
       let(:federal_reserve_interest_rate_f) { 0.00 }
-      let(:expected) { 0.7088126378267057 }
+      let(:expected) { 0.7088126378267066 }
       
       it { var_option_price().should === expected }
     end
   
     context "0.02% interest" do
       let(:federal_reserve_interest_rate_f) { 0.0002 }
-      let(:expected) { 0.7092458172337022 }
+      let(:expected) { 0.7092458172337008 }
       
       it { var_option_price().should === expected }
     end
