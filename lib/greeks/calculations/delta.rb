@@ -1,30 +1,25 @@
 module Math
   module GreekCalculations
-    def delta!(opts = {})
-      opts[:delta] = delta(opts)
-    end
-
-
+    # Delta
+    # A measurement of the change in the price of an option resulting from a change in the price of the underlying security.
+    # Delta is positive for calls and negative for puts. Delta can be calculated as the dollar change of the option that an
+    # investor can expect for a one-dollar change in the underlying security. For example, let's say an option on a stock
+    # trading at $50 costs $1 and has a delta of $0.50 per dollar of underlying stock price change. If the stock price rises
+    # to $52, the price of the option will increase by $1 (the $2 price change times the $0.50 delta). After the stock price
+    # movement, the option will be worth $2 ($1 initial cost plus $1 delta). Delta can also be calculated as a percentage
+    # change in the option price for a one-percent change in the underlying security; this method of viewing the delta value
+    # is also known as "leverage."
     def delta(opts = {})
-      [
-        :iv,
-        :stock_price,
-        :option_type,
-        :option_strike,
-        :option_expires_pct_year,
-        :federal_reserve_interest_rate
-      ].each do |required_key|
-        raise ArgumentError, "Missing value for key=#{required_key} in opts=#{opts.inspect}" if opts[required_key].nil?
+      opts.requires_fields(:option_type, :rate_vs_expires, :d1_normal_distribution)
+      
+      case opts[:option_type]
+      when :call
+        return  opts[:rate_vs_expires] * opts[:d1_normal_distribution]
+      when :put
+        return -opts[:rate_vs_expires] * opts[:d1_normal_distribution]
+      else
+        raise "Invalid option_type = #{opts[:option_type].inspect}"
       end
-      
-      sqrt_expires = Math.sqrt(opts[:option_expires_pct_year])
-      iv_sqrt_expires = opts[:iv] * sqrt_expires
-
-      d1 = normal_distribution((Math.log(opts[:stock_price] / opts[:option_strike]) + opts[:federal_reserve_interest_rate] * opts[:option_expires_pct_year]) /  iv_sqrt_expires + 0.5 * iv_sqrt_expires)
-      
-      d1 = d1 - 1 if opts[:option_type] === :put
-      
-      d1
     end
   end
 end

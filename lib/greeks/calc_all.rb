@@ -170,13 +170,7 @@ module Math
       def delta
         return nil if iv.nil?
         
-        if (option_type === :call)
-          @delta ||= eqt * d1_normal_distribution
-        else
-          @delta ||= -eqt * d1_normal_distribution
-        end
-        
-        @delta
+        @delta ||= GreekCalculations.delta(:option_type => option_type, :rate_vs_expires => rate_vs_expires, :d1_normal_distribution => d1_normal_distribution)
       end
 
 
@@ -191,7 +185,7 @@ module Math
       def gamma
         return nil if iv.nil?
         
-      	@gamma ||= nd1 * eqt / (stock_price * iv * option_expires_pct_year_sqrt)
+      	@gamma ||= nd1 * rate_vs_expires / (stock_price * iv * option_expires_pct_year_sqrt)
 
         @gamma
       end
@@ -231,12 +225,8 @@ module Math
       # at $0.90 on Tuesday morning. Another way of measuring theta for that option is ($0.90 - $1)/$1 or -10% per day.
       def theta
         return nil if iv.nil?
-        
-        if (option_type === :call)
-          @theta ||= (-price_vs_rate_vs_expires * nd1 * iv / (2 * option_expires_pct_year_sqrt) + stock_dividend_rate_f * price_vs_rate_vs_expires * d1_normal_distribution - federal_reserve_interest_rate_f * strike_vs_fed_vs_expires * d2_normal_distribution) / 365
-        else
-          @theta ||= (-price_vs_rate_vs_expires * nd1 * iv / (2 * option_expires_pct_year_sqrt) - stock_dividend_rate_f * price_vs_rate_vs_expires * d1_normal_distribution + federal_reserve_interest_rate_f * strike_vs_fed_vs_expires * d2_normal_distribution) / 365
-        end
+
+        @theta ||= GreekCalculations.theta(:stock_dividend_rate_f => stock_dividend_rate_f, :federal_reserve_interest_rate_f => federal_reserve_interest_rate_f, :option_type => option_type, :option_expires_pct_year_sqrt => option_expires_pct_year_sqrt, :iv => iv, :strike_vs_fed_vs_expires => strike_vs_fed_vs_expires, :price_vs_rate_vs_expires => price_vs_rate_vs_expires, :nd1 => nd1, :d1_normal_distribution => d1_normal_distribution, :d2_normal_distribution => d2_normal_distribution)
 
         @theta
       end
@@ -291,7 +281,7 @@ module Math
 
       
       def rate_vs_expires
-        @eqt ||= GreekCalculations.iv_rate_vs_expires(option_expires_pct_year, stock_dividend_rate_f)
+        @rate_vs_expires ||= GreekCalculations.iv_rate_vs_expires(option_expires_pct_year, stock_dividend_rate_f)
       end
 
       
