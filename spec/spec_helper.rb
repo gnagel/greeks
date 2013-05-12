@@ -33,3 +33,34 @@ RSpec.configure do |config|
     @result
   end
 end
+
+module Math
+  module GreekCalculationHelpers
+    include Math
+    include Math::GreekCalculations
+
+    def var_du
+      iv_du(stock_price, option_strike, option_expires_pct_year, federal_reserve_interest_rate_f, stock_dividend_rate_f)
+    end
+
+    def var_price_vs_rate_vs_expires
+      iv_price_vs_rate_vs_expires(stock_price, option_expires_pct_year, stock_dividend_rate_f)
+    end
+  
+    def var_vega
+      iv_vega(stock_price, option_strike, option_expires_pct_year, volatility_guess, federal_reserve_interest_rate_f, stock_dividend_rate_f, var_du, var_price_vs_rate_vs_expires)
+    end
+  
+    def var_vega
+      iv_vega(stock_price, option_strike, option_expires_pct_year, volatility_guess, federal_reserve_interest_rate_f, stock_dividend_rate_f, var_du, var_price_vs_rate_vs_expires)
+    end
+  
+    def var_option_price
+      iv_option_price(stock_price, option_strike, option_expires_pct_year, volatility_guess, federal_reserve_interest_rate_f, stock_dividend_rate_f, option_type, var_du, var_price_vs_rate_vs_expires)
+    end
+    
+    def var_iv
+      iv_calc(stock_price, option_strike, option_expires_pct_year, federal_reserve_interest_rate_f, stock_dividend_rate_f, option_type, option_price)
+    end
+  end
+end

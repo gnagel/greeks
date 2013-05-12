@@ -57,45 +57,66 @@ module Math
     
     # lastPrice, strike, exptime, irate, yield, 0, oprice
     def iv_calc(stock_price, option_strike, option_expires_pct_year, federal_reserve_interest_rate_f, stock_dividend_rate_f, option_type, option_price)
-      var_du = iv_du(stock_price, option_strike, option_expires_pct_year, federal_reserve_interest_rate_f, stock_dividend_rate_f)
-
+      # Contstant values for the calculations
+      var_du                       = iv_du(stock_price, option_strike, option_expires_pct_year, federal_reserve_interest_rate_f, stock_dividend_rate_f)
       var_price_vs_rate_vs_expires = iv_price_vs_rate_vs_expires(stock_price, option_expires_pct_year, stock_dividend_rate_f)
-
     	price_limit = [0.005, 0.01 * option_price].min
+
+      # Lambda for short-hand calculations
+      calc_option_price            = lambda { |volatility_guess| iv_option_price(stock_price, option_strike, option_expires_pct_year, volatility_guess, federal_reserve_interest_rate_f, stock_dividend_rate_f, option_type, var_du, var_price_vs_rate_vs_expires) }
+      
+      # Lambda for short-hand calculations
+      calc_vega                    = lambda { |volatility_guess| iv_vega(stock_price, option_strike, option_expires_pct_year, volatility_guess, federal_reserve_interest_rate_f, stock_dividend_rate_f, var_du, var_price_vs_rate_vs_expires) }
+      
+      # Lambda for short-hand calculations
+      calc_volatility_guess1       = lambda { |var_volatility_guess, var_option_price, var_vega| var_volatility_guess - (var_option_price - option_price) / var_vega }
+      
+      # Lambda for short-hand calculations
+      is_terminal_volatility_guess = lambda { |var_option_price| ((option_price - var_option_price).abs < price_limit) }
+
+      # Lambda for short-hand calculations
+      cleanup_volatility_guess     = lambda { |volatility_guess| volatility_guess.nil? || volatility_guess <= 0 ? nil : volatility_guess.to_f }
       
     	var_volatility_guess = iv_volatility_guess0(stock_price, option_strike, option_expires_pct_year, federal_reserve_interest_rate_f, stock_dividend_rate_f)
       var_volatility_guess = 0.1 if var_volatility_guess <= 0
+    	var_option_price     = calc_option_price.call(var_volatility_guess)
 
-    	var_option_price = iv_option_price(stock_price, option_strike, option_expires_pct_year, var_volatility_guess, federal_reserve_interest_rate_f, stock_dividend_rate_f, option_type, var_du, var_price_vs_rate_vs_expires)
+      if is_terminal_volatility_guess.call(var_option_price)
+        return cleanup_volatility_guess.call(var_volatility_guess)
+      end
 
-      return var_volatility_guess if ((option_price - var_option_price).abs < price_limit)
+    	var_vega = calc_vega.call(var_volatility_guess)
 
-    	var_vega = iv_vega(stock_price, option_strike, option_expires_pct_year, var_volatility_guess, federal_reserve_interest_rate_f, stock_dividend_rate_f, var_du, var_price_vs_rate_vs_expires)
-
-    	var_volatility_guess1 = var_volatility_guess - (var_option_price - option_price) / var_vega
+    	var_volatility_guess1 = calc_volatility_guess1.call(var_volatility_guess, var_option_price, var_vega)
 
     	var_step = 1
       max_steps = 13
     	while ((var_volatility_guess - var_volatility_guess1).abs > 0.0001 && var_step < max_steps)
     		var_volatility_guess = var_volatility_guess1
-    		var_option_price = iv_option_price(stock_price, option_strike, option_expires_pct_year, var_volatility_guess, federal_reserve_interest_rate_f, stock_dividend_rate_f, option_type, var_du, var_price_vs_rate_vs_expires)
+    		var_option_price = calc_option_price.call(var_volatility_guess)
 
-    		return var_volatility_guess if ((option_price - var_option_price).abs < price_limit)
+    		if is_terminal_volatility_guess.call(var_option_price)
+          return cleanup_volatility_guess.call(var_volatility_guess)
+        end
 
-    		var_vega = iv_vega(stock_price, option_strike, option_expires_pct_year, var_volatility_guess, federal_reserve_interest_rate_f, stock_dividend_rate_f, var_du, var_price_vs_rate_vs_expires)
+    		var_vega = calc_vega.call(var_volatility_guess)
 
-    		var_volatility_guess1 = var_volatility_guess - (var_option_price - option_price) / var_vega
-    		return var_volatility_guess1 if (var_volatility_guess1 < 0)
+    		var_volatility_guess1 = calc_volatility_guess1.call(var_volatility_guess, var_option_price, var_vega)
+    		if (var_volatility_guess1 < 0)
+          return cleanup_volatility_guess.call(var_volatility_guess1)
+        end
 
     		var_step += 1
       end
 
-    	return var_volatility_guess1 if (var_step < max_steps)
+    	if (var_step < max_steps)
+        return cleanup_volatility_guess.call(var_volatility_guess1)
+      end
 
-    	var_option_price = iv_option_price(stock_price, option_strike, option_expires_pct_year, var_volatility_guess1, federal_reserve_interest_rate_f, stock_dividend_rate_f, option_type, var_du, var_price_vs_rate_vs_expires)
+      var_option_price = calc_option_price.call(var_volatility_guess1)
 
-    	if ((option_price - var_option_price).abs < price_limit)
-    		return var_volatility_guess1
+    	if is_terminal_volatility_guess.call(var_option_price)
+        return cleanup_volatility_guess.call(var_volatility_guess1)
     	else
     		return nil
       end

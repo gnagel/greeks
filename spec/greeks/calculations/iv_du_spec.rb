@@ -3,15 +3,12 @@ require File.expand_path("../../spec_helper.rb", File.dirname(__FILE__))
 describe "Math::GreekCalculations::iv_du" do
   include Math
   include Math::GreekCalculations
+  include Math::GreekCalculationHelpers
 
   let(:stock_price) { 10.00 }
   let(:stock_dividend_rate_f) { 0.00 }
   let(:option_expires_pct_year) { 1.00 }
-  
-  def var_du
-    iv_du(stock_price, option_strike, option_expires_pct_year, federal_reserve_interest_rate_f, stock_dividend_rate_f)
-  end
-  
+
   context "exactly at the money" do
     let(:option_strike) { 10.00 }
   

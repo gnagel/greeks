@@ -3,51 +3,70 @@ require File.expand_path("../../spec_helper.rb", File.dirname(__FILE__))
 describe "Math::GreekCalculations::iv" do
   extend  Math::GreekCalculations
   include Math::GreekCalculations
+  include Math::GreekCalculationHelpers
 
-  before(:all) {
-    @opts = {
-      :federal_reserve_interest_rate => 0.0,
-      :stock_dividend_rate           => 0.0,
-      :stock_price                   => 1558.86,
-      :option_expires_in_days        => 2.0,
-      :option_type                   => nil,
-      :option_strike                 => 1555.00,
-      :option_price                  => 6.00,
-    }
-  }
 
+  let(:federal_reserve_interest_rate) { 0.0 }
+  let(:federal_reserve_interest_rate_f) { federal_reserve_interest_rate / 100.0 }
+  let(:stock_dividend_rate) { 0.0 }
+  let(:stock_dividend_rate_f) { stock_dividend_rate / 100 }
+  let(:stock_price) { 1558.86 }
+  let(:option_expires_in_days) { 2.0 }
+  let(:option_expires_pct_year) { (option_expires_in_days + 1.0) / 365.0 }
 
   describe "call options" do
-    before(:all) {
-      @call_opts = @opts.merge(:option_type => :call)
-    }
-    
-    it "should take 0.0005s per calculation" do
-      test_speed(0.0005) { iv_pct(@call_opts) }
+    let(:option_type) { :call }
+
+    context "should calculate the iv" do
+      let(:option_strike) {  800.00 }
+      let(:option_price) { 751.50 } 
+      it { var_iv().should be_nil }
     end
 
-    it "should calculate the iv" do
-      iv_pct(@call_opts.merge(:option_strike =>  800.00, :option_price => 751.50)).should be_nil
-      iv_pct(@call_opts.merge(:option_strike => 1555.00, :option_price =>   6.00)).should === 6.68
-      iv_pct(@call_opts.merge(:option_strike => 1560.00, :option_price =>   3.70)).should === 7.53
-      iv_pct(@call_opts.merge(:option_strike => 1565.00, :option_price =>   2.00)).should === 7.80
+    context "should calculate the iv" do
+      let(:option_strike) { 1555.00 }
+      let(:option_price) {   6.00 } 
+      it { var_iv().round(4).should === 0.0668 }
+    end
+
+    context "should calculate the iv" do
+      let(:option_strike) { 1560.00 }
+      let(:option_price) {   3.70 } 
+      it { var_iv().round(4).should === 0.0753 }
+    end
+
+    context "should calculate the iv" do
+      let(:option_strike) { 1565.00 }
+      let(:option_price) {   2.00 } 
+      it { var_iv().round(4).should === 0.0780 }
     end
   end
   
   describe "put options" do
-    before(:all) {
-      @put_opts = @opts.merge(:option_type => :put)
-    }
-    
-    it "should take 0.0005s per calculation" do
-      test_speed(0.0005) { iv_pct(@put_opts) }
+    let(:option_type) { :put }
+
+    context "should calculate the iv" do
+      let(:option_strike) {  800.00 }
+      let(:option_price) { 751.50 } 
+      it { var_iv().should be_nil }
     end
 
-    it "should calculate the iv" do
-      iv_pct(@put_opts.merge(:option_strike =>  800.00, :option_price =>  0.00)).should be_nil
-      iv_pct(@put_opts.merge(:option_strike => 1555.00, :option_price =>  8.00)).should === 17.42
-      iv_pct(@put_opts.merge(:option_strike => 1560.00, :option_price => 10.40)).should === 17.41
-      iv_pct(@put_opts.merge(:option_strike => 1565.00, :option_price => 13.60)).should === 18.12
+    context "should calculate the iv" do
+      let(:option_strike) { 1555.00 }
+      let(:option_price) {   8.00 } 
+      it { var_iv().round(4).should === 0.1742 }
+    end
+
+    context "should calculate the iv" do
+      let(:option_strike) { 1560.00 }
+      let(:option_price) {   10.40 } 
+      it { var_iv().round(4).should === 0.1741 }
+    end
+
+    context "should calculate the iv" do
+      let(:option_strike) { 1565.00 }
+      let(:option_price) {   13.60 } 
+      it { var_iv().round(4).should === 0.1812 }
     end
   end
 end
