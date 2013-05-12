@@ -1,7 +1,6 @@
 require File.expand_path("../spec_helper.rb", File.dirname(__FILE__))
 
 describe Math::Greeks::CalculatorAll do
-
   before(:all) {
     @opts = {
       :federal_reserve_interest_rate => 0.0002 * 100,
@@ -56,144 +55,293 @@ describe Math::Greeks::CalculatorAll do
       :deta_vs_theta                   => (-47.177031176162544 * 100).round(2),
     }
   }
+  
+  before(:each) {
+    @calc = Math::Greeks::CalculatorAll.new(@opts)
+  }
 
 
-  it "should calculate the sqrt_2pi" do
-    Math::Greeks::CalculatorAll::SQRT_2PI.should === @expected[:sqrt_2pi]
+  #it { Math::Greeks::CalculatorAll::SQRT_2PI.should === @expected[:sqrt_2pi] }
+
+  #it { @calc.federal_reserve_interest_rate_f.should === @expected[:federal_reserve_interest_rate_f] }
+  #it { @calc.stock_dividend_rate_f.should === @expected[:stock_dividend_rate_f] }
+  #it { @calc.option_expires_pct_year.should === @expected[:option_expires_pct_year] }
+  #it { @calc.option_expires_pct_year_sqrt.should === @expected[:st] }
+  #it { @calc.premium_value.should === @expected[:premium_value] }
+  #it { @calc.time_value.should === @expected[:time_value] }
+  #it { @calc.annualized_premium_value.should === @expected[:annualized_premium_value] }
+  #it { @calc.annualized_time_value.should === @expected[:annualized_time_value] } 
+  ##it { @calc.du.should === @expected[:du] }
+  #it { @calc.eqt.should === @expected[:eqt] }
+  #it { @calc.p1.should === @expected[:p1] }
+  #it { @calc.x1.should === @expected[:x1] }
+  #it { @calc.d1.should === @expected[:d1] }
+  ##it { @calc.d1_normal_distribution.should === @expected[:d1_normal_distribution] }
+  ##it { @calc.nd1.should === @expected[:nd1] }
+  ##it { @calc.d2.should === @expected[:d2] }
+  ##it { @calc.d2_normal_distribution.should === @expected[:d2_normal_distribution] }
+  #it { @calc.iv.should === @expected[:iv] }
+  ##it { @calc.vega.should === @expected[:vega] }
+  ##it { @calc.theta.should === @expected[:theta] }
+  ##it { @calc.rho.should === @expected[:rho] }
+  ##it { @calc.gamma.should === @expected[:gamma] }
+  ##it { @calc.delta.should === @expected[:delta] }
+  ##it { @calc.break_even.should === @expected[:break_even] }
+  ##it { @calc.to_hash[:deta_vs_theta].should === @expected[:deta_vs_theta] }
+  #it { @calc.to_hash[:iv].should === @hash[:iv] }
+  ##it { @calc.to_hash[:vega].should === @hash[:vega] }
+  ##it { @calc.to_hash[:theta].should === @hash[:theta] }
+  ##it { @calc.to_hash[:rho].should === @hash[:rho] }
+  ##it { @calc.to_hash[:gamma].should === @hash[:gamma] }
+  ##it { @calc.to_hash[:delta].should === @hash[:delta] }
+  ##it { @calc.to_hash[:delta_vs_theta].should === @hash[:delta_vs_theta] }
+end
+
+
+
+describe "Math::GreekCalculations::iv_du" do
+  include Math
+  include Math::GreekCalculations
+
+  let(:stock_price) { 10.00 }
+  let(:stock_dividend_rate_f) { 0.00 }
+  let(:option_expires_pct_year) { 1.00 }
+  
+  def var_du
+    iv_du(stock_price, option_strike, option_expires_pct_year, federal_reserve_interest_rate_f, stock_dividend_rate_f)
   end
+  
+  context "exactly at the money" do
+    let(:option_strike) { 10.00 }
+  
+    context "0% interest" do
+      let(:federal_reserve_interest_rate_f) { 0.00 }
+      let(:expected) { 0.00 }
 
-  it "should calculate the federal_reserve_interest_rate_f" do
-    Math::Greeks::CalculatorAll.new(@opts).federal_reserve_interest_rate_f.should === @expected[:federal_reserve_interest_rate_f]
+      it { var_du().should === expected }
+    end
+  
+    context "0.02% interest" do
+      let(:federal_reserve_interest_rate_f) { 0.0002 }
+      let(:expected) { 0.0002 }
+
+      it { var_du().should === expected }
+    end
   end
+  
+  context "out of the money" do
+    let(:option_strike) { 15.00 }
+  
+    context "0% interest" do
+      let(:federal_reserve_interest_rate_f) { 0.00 }
+      let(:expected) { -0.40546510810816444 }
 
-  it "should calculate the stock_dividend_rate_f" do
-    Math::Greeks::CalculatorAll.new(@opts).stock_dividend_rate_f.should === @expected[:stock_dividend_rate_f]
+      it { var_du().should === expected }
+    end
+  
+    context "0.02% interest" do
+      let(:federal_reserve_interest_rate_f) { 0.0002 }
+      let(:expected) { -0.40526510810816446 }
+
+      it { var_du().should === expected }
+    end
   end
+  
+  context "in of the money" do
+    let(:option_strike) { 5.00 }
+  
+    context "0% interest" do
+      let(:federal_reserve_interest_rate_f) { 0.00 }
+      let(:expected) { 0.6931471805599453 }
 
-  it "should calculate the option_expires_pct_year" do
-    Math::Greeks::CalculatorAll.new(@opts).option_expires_pct_year.should === @expected[:option_expires_pct_year]
-  end
+      it { var_du().should === expected }
+    end
+  
+    context "0.02% interest" do
+      let(:federal_reserve_interest_rate_f) { 0.0002 }
+      let(:expected) { 0.6933471805599453 }
 
-  it "should calculate the option_expires_pct_year_sqrt" do
-    Math::Greeks::CalculatorAll.new(@opts).option_expires_pct_year_sqrt.should === @expected[:st]
-  end
-
-
-
-  it "should calculate the premium_value" do
-    Math::Greeks::CalculatorAll.new(@opts).premium_value.should === @expected[:premium_value]
-  end
-
-  it "should calculate the time_value" do
-    Math::Greeks::CalculatorAll.new(@opts).time_value.should === @expected[:time_value]
-  end
-
-  it "should calculate the annualized_premium_value" do
-    Math::Greeks::CalculatorAll.new(@opts).annualized_premium_value.should === @expected[:annualized_premium_value]
-  end
-
-  it "should calculate the annualized_time_value" do
-    Math::Greeks::CalculatorAll.new(@opts).annualized_time_value.should === @expected[:annualized_time_value]
-  end
-
-
-  xit "should calculate the break_even" do
-    Math::Greeks::CalculatorAll.new(@opts).break_even.should === @expected[:break_even]
-  end
-
-  xit "should calculate the d1" do
-    Math::Greeks::CalculatorAll.new(@opts).d1.should === @expected[:d1]
-  end
-
-  xit "should calculate the d1_normal_distribution" do
-    Math::Greeks::CalculatorAll.new(@opts).d1_normal_distribution.should === @expected[:d1_normal_distribution]
-  end
-
-  xit "should calculate the d2" do
-    Math::Greeks::CalculatorAll.new(@opts).d2.should === @expected[:d2]
-  end
-
-  xit "should calculate the d2_normal_distribution" do
-    Math::Greeks::CalculatorAll.new(@opts).d2_normal_distribution.should === @expected[:d2_normal_distribution]
-  end
-
-  it "should calculate the du" do
-    Math::Greeks::CalculatorAll.new(@opts).du.should === @expected[:du]
-  end
-
-  it "should calculate the eqt" do
-    Math::Greeks::CalculatorAll.new(@opts).eqt.should === @expected[:eqt]
-  end
-
-  xit "should calculate the nd1" do
-    Math::Greeks::CalculatorAll.new(@opts).nd1.should === @expected[:nd1]
-  end
-
-  it "should calculate the p1" do
-    Math::Greeks::CalculatorAll.new(@opts).p1.should === @expected[:p1]
-  end
-
-  it "should calculate the x1" do
-    Math::Greeks::CalculatorAll.new(@opts).x1.should === @expected[:x1]
-  end
-
-  it "should calculate the iv" do
-    Math::Greeks::CalculatorAll.new(@opts).iv.should === @expected[:iv]
-  end
-
-  xit "should calculate the vega" do
-    Math::Greeks::CalculatorAll.new(@opts).vega.should === @expected[:vega]
-  end
-
-  xit "should calculate the theta" do
-    Math::Greeks::CalculatorAll.new(@opts).theta.should === @expected[:theta]
-  end
-
-  xit "should calculate the rho" do
-    Math::Greeks::CalculatorAll.new(@opts).rho.should === @expected[:rho]
-  end
-
-  xit "should calculate the gamma" do
-    Math::Greeks::CalculatorAll.new(@opts).gamma.should === @expected[:gamma]
-  end
-
-  xit "should calculate the delta" do
-    Math::Greeks::CalculatorAll.new(@opts).delta.should === @expected[:delta]
-  end
-
-  xit "should calculate the deta_vs_theta" do
-    Math::Greeks::CalculatorAll.new(@opts).to_hash[:deta_vs_theta].should === @expected[:deta_vs_theta]
-  end
-
-
-
-  xit "should calculate the to_hash[:iv]" do
-    Math::Greeks::CalculatorAll.new(@opts).to_hash[:iv].should === @hash[:iv]
-  end
-
-  xit "should calculate the to_hash[:vega]" do
-    Math::Greeks::CalculatorAll.new(@opts).to_hash[:vega].should === @hash[:vega]
-  end
-
-  xit "should calculate the to_hash[:theta]" do
-    Math::Greeks::CalculatorAll.new(@opts).to_hash[:theta].should === @hash[:theta]
-  end
-
-  xit "should calculate the to_hash[:rho]" do
-    Math::Greeks::CalculatorAll.new(@opts).to_hash[:rho].should === @hash[:rho]
-  end
-
-  xit "should calculate the to_hash[:gamma]" do
-    Math::Greeks::CalculatorAll.new(@opts).to_hash[:gamma].should === @hash[:gamma]
-  end
-
-  xit "should calculate the to_hash[:delta]" do
-    Math::Greeks::CalculatorAll.new(@opts).to_hash[:delta].should === @hash[:delta]
-  end
-
-  xit "should calculate the to_hash[:delta_vs_theta]" do
-    Math::Greeks::CalculatorAll.new(@opts).to_hash[:delta_vs_theta].should === @hash[:delta_vs_theta]
+      it { var_du().should === expected }
+    end
   end
 end
 
 
+
+describe "Math::GreekCalculations::iv_price_vs_rate_vs_expires" do
+  include Math
+  include Math::GreekCalculations
+
+  let(:stock_price) { 10.00 }
+  let(:option_expires_pct_year) { 1.00 }
+  let(:stock_dividend_rate_f) { 0.05 }
+  let(:expected) { 9.51229424500714 }
+  subject { iv_price_vs_rate_vs_expires(stock_price, option_expires_pct_year, stock_dividend_rate_f) }
+  
+  it { should === expected }
+end
+
+
+
+describe "Math::GreekCalculations::iv_vega" do
+  include Math
+  include Math::GreekCalculations
+
+  let(:stock_price) { 10.00 }
+  let(:stock_dividend_rate_f) { 0.00 }
+  let(:option_expires_pct_year) { 1.00 }
+  let(:volatility_guess) { 0.50 }
+
+  def var_du
+    iv_du(stock_price, option_strike, option_expires_pct_year, federal_reserve_interest_rate_f, stock_dividend_rate_f)
+  end
+
+  def var_price_vs_rate_vs_expires
+    iv_price_vs_rate_vs_expires(stock_price, option_expires_pct_year, stock_dividend_rate_f)
+  end
+  
+  def var_vega
+    iv_vega(stock_price, option_strike, option_expires_pct_year, volatility_guess, federal_reserve_interest_rate_f, stock_dividend_rate_f, var_du, var_price_vs_rate_vs_expires)
+  end
+  
+  context "exactly at the money" do
+    let(:option_strike) { 10.00 }
+  
+    context "0% interest" do
+      let(:federal_reserve_interest_rate_f) { 0.00 }
+      let(:expected) { 3.866681168028493 }
+      
+      it { var_vega().should === expected }
+    end
+  
+    context "0.02% interest" do
+      let(:federal_reserve_interest_rate_f) { 0.0002 }
+      let(:expected) { 3.866294209940902 }
+      
+      it { var_vega().should === expected }
+    end
+  end
+  
+  context "out of the money" do
+    let(:option_strike) { 15.00 }
+  
+    context "0% interest" do
+      let(:federal_reserve_interest_rate_f) { 0.00 }
+      let(:expected) { 3.4086802947730774 }
+      
+      it { var_vega().should === expected }
+    end
+  
+    context "0.02% interest" do
+      let(:federal_reserve_interest_rate_f) { 0.0002 }
+      let(:expected) { 3.4094449205351056 }
+      
+      it { var_vega().should === expected }
+    end
+  end
+  
+  context "in of the money" do
+    let(:option_strike) { 5.00 }
+  
+    context "0% interest" do
+      let(:federal_reserve_interest_rate_f) { 0.00 }
+      let(:expected) { 1.045940982192684 }
+      
+      it { var_vega().should === expected }
+    end
+  
+    context "0.02% interest" do
+      let(:federal_reserve_interest_rate_f) { 0.0002 }
+      let(:expected) { 1.045256535627944 }
+      
+      it { var_vega().should === expected }
+    end
+  end
+end
+
+
+
+describe "Math::GreekCalculations::iv_option_price" do
+  include Math
+  include Math::GreekCalculations
+
+  let(:stock_price) { 10.00 }
+  let(:stock_dividend_rate_f) { 0.00 }
+  let(:option_type) { :call }
+  let(:option_expires_pct_year) { 1.00 }
+  let(:volatility_guess) { 0.50 }
+
+  def var_du
+    iv_du(stock_price, option_strike, option_expires_pct_year, federal_reserve_interest_rate_f, stock_dividend_rate_f)
+  end
+
+  def var_price_vs_rate_vs_expires
+    iv_price_vs_rate_vs_expires(stock_price, option_expires_pct_year, stock_dividend_rate_f)
+  end
+  
+  def var_vega
+    iv_vega(stock_price, option_strike, option_expires_pct_year, volatility_guess, federal_reserve_interest_rate_f, stock_dividend_rate_f, var_du, var_price_vs_rate_vs_expires)
+  end
+  
+  def var_vega
+    iv_vega(stock_price, option_strike, option_expires_pct_year, volatility_guess, federal_reserve_interest_rate_f, stock_dividend_rate_f, var_du, var_price_vs_rate_vs_expires)
+  end
+  
+  def var_option_price
+    iv_option_price(stock_price, option_strike, option_expires_pct_year, volatility_guess, federal_reserve_interest_rate_f, stock_dividend_rate_f, option_type, var_du, var_price_vs_rate_vs_expires)
+  end
+  
+  context "exactly at the money" do
+    let(:option_strike) { 10.00 }
+  
+    context "0% interest" do
+      let(:federal_reserve_interest_rate_f) { 0.00 }
+      let(:expected) { 1.9741254870839384 }
+      
+      it { var_option_price().should === expected }
+    end
+  
+    context "0.02% interest" do
+      let(:federal_reserve_interest_rate_f) { 0.0002 }
+      let(:expected) { 1.974928148944329 }
+      
+      it { var_option_price().should === expected }
+    end
+  end
+  
+  context "out of the money" do
+    let(:option_strike) { 15.00 }
+  
+    context "0% interest" do
+      let(:federal_reserve_interest_rate_f) { 0.00 }
+      let(:expected) { 0.7088126378267057 }
+      
+      it { var_option_price().should === expected }
+    end
+  
+    context "0.02% interest" do
+      let(:federal_reserve_interest_rate_f) { 0.0002 }
+      let(:expected) { 0.7092458172337022 }
+      
+      it { var_option_price().should === expected }
+    end
+  end
+  
+  context "in of the money" do
+    let(:option_strike) { 5.00 }
+  
+    context "0% interest" do
+      let(:federal_reserve_interest_rate_f) { 0.00 }
+      let(:expected) { 5.130693877506824 }
+      
+      it { var_option_price().should === expected }
+    end
+  
+    context "0.02% interest" do
+      let(:federal_reserve_interest_rate_f) { 0.0002 }
+      let(:expected) { 5.1315659170286185 }
+      
+      it { var_option_price().should === expected }
+    end
+  end
+end

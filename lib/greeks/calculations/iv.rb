@@ -1,101 +1,99 @@
-module Math
+module Math  
   module GreekCalculations
     def iv(opts)
-      ImpliedVolatility.new(opts).iv
+      opts.requires_fields(:stock_price, :option_strike, :option_expires_pct_year, :federal_reserve_interest_rate_f, :stock_dividend_rate_f, :option_type, :option_price)
+      
+      iv_calc(
+        opts[:stock_price], 
+        opts[:option_strike], 
+        opts[:option_expires_pct_year], 
+        opts[:federal_reserve_interest_rate_f], 
+        opts[:stock_dividend_rate_f], 
+        opts[:option_type], 
+        opts[:option_price]
+      )
     end
     
-    class ImpliedVolatility
-      include Math::GreekCalculations
-
-      def initialize(opts)
-        opts.requires_fields(
-          :federal_reserve_interest_rate,
-          :stock_price,
-          :stock_dividend_rate,
-          :option_type,
-          :option_strike,
-          :option_price,
-          :option_expires_in_days
-        )
-        @federal_reserve_interest_rate = opts[:federal_reserve_interest_rate]
-        @stock_dividend_rate           = opts[:stock_dividend_rate]
-
-        @option_type                   = opts[:option_type]
-        @stock_price                   = opts[:stock_price]
-        @option_strike                 = opts[:option_strike]
-        @option_price                  = opts[:option_price]
-        @option_expires_in_days        = opts[:option_expires_in_days]
-        @option_days_pct_of_year       = (Float(@option_expires_in_days) + Float(1))/Float(365)
-      end
-
-      # Calculate the "raw" 0.000 to 1.000 range of the IV
-      def iv()
-        e = 0.0001
-        n = 13
-        pLim = [0.005, 0.01 * @option_price].min;
-
-        v = Math.sqrt((Math.log(@stock_price / @option_strike) + (@federal_reserve_interest_rate - @stock_dividend_rate) * @option_days_pct_of_year).abs * 2 / @option_days_pct_of_year)
-        v = 0.1 if (v <= 0)
-
-        c = option_price_approxination(v)
-
-        return v if ((@option_price - c).abs < pLim)
-
-        vega = calc_vega(v)
-        v1 = v - (c - @option_price) / vega
-        step = 1
-        while ((v - v1).abs > e && step < n)
-          v = v1
-          c = option_price_approxination(v)
-          return v if ((@option_price - c).abs < pLim)
-
-          vega = calc_vega(v)
-          v1 = v - (c - @option_price) / vega
-          return v1 if (v1 < 0)
-
-          step= step + 1
-        end
-
-        return v1 if (step < n)
-
-        c = option_price_approxination(v1)
-        return v1 if ((@option_price - c).abs < pLim)
-
-        nil
-      end
-      
-      private
-
-      # calculate vega
-      def calc_vega(v)
-        st = Math.sqrt(@option_days_pct_of_year)
-        du = Math.log(@stock_price / @option_strike) + (@federal_reserve_interest_rate - @stock_dividend_rate) * @option_days_pct_of_year
-        p1 = @stock_price * Math.exp(-@stock_dividend_rate * @option_days_pct_of_year)
-        d1 = (du + v * v * @option_days_pct_of_year / 2) / (v * st)
-        nd = Math.exp(-d1 * d1 / 2) / Math.sqrt(2 * Math::PI)
-        vega = p1 * st * nd
-
-        return vega
-      end
-
-      # This gives an approxination of the Implied volatility
-      def option_price_approxination(v)
-        st = Math.sqrt(@option_days_pct_of_year)
-        du = Math.log(@stock_price / @option_strike) + (@federal_reserve_interest_rate - @stock_dividend_rate) * @option_days_pct_of_year
-        p1 = @stock_price * Math.exp(-@stock_dividend_rate * @option_days_pct_of_year)
-        x1 = @option_strike * Math.exp(-@federal_reserve_interest_rate * @option_days_pct_of_year)
-        d1 = (du + v * v * @option_days_pct_of_year / 2) / (v * st)
-        d2 = d1 - v * st
-
-        if (@option_type === :call)
-          iv_approximation = p1 * normal_distribution(d1) - x1 * normal_distribution(d2)
-        else
-          iv_approximation = x1 * normal_distribution(-d2) - p1 * normal_distribution(-d1)
-        end
     
-        return iv_approximation
+    def iv_du(stock_price, option_strike, option_expires_pct_year, federal_reserve_interest_rate_f, stock_dividend_rate_f)
+      Math.log(stock_price / option_strike) + (federal_reserve_interest_rate_f - stock_dividend_rate_f) * option_expires_pct_year
+    end
+    
+    
+    def iv_price_vs_rate_vs_expires(stock_price, option_expires_pct_year, stock_dividend_rate_f)
+      stock_price * Math.exp(option_expires_pct_year * -stock_dividend_rate_f)
+    end
+    
+
+    def iv_vega(stock_price, option_strike, option_expires_pct_year, volatility_guess, federal_reserve_interest_rate_f, stock_dividend_rate_f, var_du, var_price_vs_rate_vs_expires)
+    	var_d1 = (var_du + volatility_guess * volatility_guess * option_expires_pct_year / 2) / (volatility_guess * Math::sqrt(option_expires_pct_year))
+    	var_nd = Math.exp(-var_d1 * var_d1 / 2) / Math::sqrt(2 * Math::PI)
+    	return var_price_vs_rate_vs_expires * Math::sqrt(option_expires_pct_year) * var_nd
+    end
+
+
+    def iv_option_price(stock_price, option_strike, option_expires_pct_year, volatility_guess, federal_reserve_interest_rate_f, stock_dividend_rate_f, option_type, var_du, var_price_vs_rate_vs_expires)
+    	var_x1 = option_strike * Math.exp(-volatility_guess * option_expires_pct_year)
+    	var_d1 = (var_du + volatility_guess * volatility_guess * option_expires_pct_year / 2) / (volatility_guess * Math::sqrt(option_expires_pct_year))
+    	var_d2 = var_d1 - volatility_guess * Math::sqrt(option_expires_pct_year)
+    	if (option_type === :call)
+    		return var_price_vs_rate_vs_expires * normal_distribution(var_d1) - var_x1 * normal_distribution(var_d2)
+    	else
+    		return var_x1 * normal_distribution(-var_d2) - var_price_vs_rate_vs_expires * normal_distribution(-var_d1)
+      end
+    end
+    
+    
+    def iv_volatility_guess0(stock_price, option_strike, option_expires_pct_year, federal_reserve_interest_rate_f, stock_dividend_rate_f)
+      Math.sqrt(
+      (Math.log(stock_price / option_strike) + (federal_reserve_interest_rate_f - stock_dividend_rate_f) * option_expires_pct_year).abs * 2 / option_expires_pct_year)
+    end
+    
+    
+    # lastPrice, strike, exptime, irate, yield, 0, oprice
+    def iv_calc(stock_price, option_strike, option_expires_pct_year, federal_reserve_interest_rate_f, stock_dividend_rate_f, option_type, option_price)
+      var_du = iv_du(stock_price, option_strike, option_expires_pct_year, federal_reserve_interest_rate_f, stock_dividend_rate_f)
+
+      var_price_vs_rate_vs_expires = iv_price_vs_rate_vs_expires(stock_price, option_expires_pct_year, stock_dividend_rate_f)
+
+    	price_limit = [0.005, 0.01 * option_price].min
+      
+    	var_volatility_guess = iv_volatility_guess0(stock_price, option_strike, option_expires_pct_year, federal_reserve_interest_rate_f, stock_dividend_rate_f)
+      var_volatility_guess = 0.1 if var_volatility_guess <= 0
+
+    	var_option_price = iv_option_price(stock_price, option_strike, option_expires_pct_year, var_volatility_guess, federal_reserve_interest_rate_f, stock_dividend_rate_f, option_type, var_du, var_price_vs_rate_vs_expires)
+
+      return var_volatility_guess if ((option_price - var_option_price).abs < price_limit)
+
+    	var_vega = iv_vega(stock_price, option_strike, option_expires_pct_year, var_volatility_guess, federal_reserve_interest_rate_f, stock_dividend_rate_f, var_du, var_price_vs_rate_vs_expires)
+
+    	var_volatility_guess1 = var_volatility_guess - (var_option_price - option_price) / var_vega
+
+    	var_step = 1
+      max_steps = 13
+    	while ((var_volatility_guess - var_volatility_guess1).abs > 0.0001 && var_step < max_steps)
+    		var_volatility_guess = var_volatility_guess1
+    		var_option_price = iv_option_price(stock_price, option_strike, option_expires_pct_year, var_volatility_guess, federal_reserve_interest_rate_f, stock_dividend_rate_f, option_type, var_du, var_price_vs_rate_vs_expires)
+
+    		return var_volatility_guess if ((option_price - var_option_price).abs < price_limit)
+
+    		var_vega = iv_vega(stock_price, option_strike, option_expires_pct_year, var_volatility_guess, federal_reserve_interest_rate_f, stock_dividend_rate_f, var_du, var_price_vs_rate_vs_expires)
+
+    		var_volatility_guess1 = var_volatility_guess - (var_option_price - option_price) / var_vega
+    		return var_volatility_guess1 if (var_volatility_guess1 < 0)
+
+    		var_step += 1
       end
 
+    	return var_volatility_guess1 if (var_step < max_steps)
+
+    	var_option_price = iv_option_price(stock_price, option_strike, option_expires_pct_year, var_volatility_guess1, federal_reserve_interest_rate_f, stock_dividend_rate_f, option_type, var_du, var_price_vs_rate_vs_expires)
+
+    	if ((option_price - var_option_price).abs < price_limit)
+    		return var_volatility_guess1
+    	else
+    		return nil
+      end
     end
     
   end

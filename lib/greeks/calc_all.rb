@@ -144,11 +144,14 @@ module Math
         @iv ||= GreekCalculations.iv(
           :stock_price                   => stock_price,
           :stock_dividend_rate           => stock_dividend_rate,
+          :stock_dividend_rate_f         => stock_dividend_rate_f,
           :option_type                   => option_type,
           :option_price                  => option_price,
           :option_strike                 => option_strike,
           :option_expires_in_days        => option_expires_in_days,
-          :federal_reserve_interest_rate => federal_reserve_interest_rate
+          :option_expires_pct_year       => option_expires_pct_year,
+          :federal_reserve_interest_rate => federal_reserve_interest_rate,
+          :federal_reserve_interest_rate_f => federal_reserve_interest_rate_f,
         )
         
         @iv
