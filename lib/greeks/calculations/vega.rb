@@ -1,32 +1,15 @@
 module Math
   module GreekCalculations
-    def vega!(opts = {})
-      opts[:vega] = vega(opts)
-    end
-
-
+    # Vega
+    # The change in the price of an option for a change in the implied volatility of the option, all else held equal.
+    # In general, as the options market thinks it is more difficult to value a stock, implied volatility and therefore
+    # the price of the options will increase. For example, if an option is trading for $1, the implied volatility is 20%,
+    # and the vega is $0.05, then a one-percentage-point increase in implied volatility to 21% would correspond to an increase in
+    # the price of the option to $1.05. In percentage terms, the vega in this case would be ($0.05/$1.00)/(1 percentage point) = 5%.
     def vega(opts = {})
-      [
-        :volatility_assumption,
-        :stock_price,
-        :stock_dividend_rate,
-        :option_strike,
-        :option_expires_pct_year,
-        :federal_reserve_interest_rate
-      ].each do |required_key|
-        raise ArgumentError, "Missing value for key=#{required_key} in opts=#{opts.inspect}" if opts[required_key].nil?
-      end
+      opts.requires_fields(:price_vs_rate_vs_expires, :nd1, :option_expires_pct_year_sqrt)
 
-      du = Math.log(opts[:stock_price] / opts[:option_strike]) + (opts[:federal_reserve_interest_rate] - opts[:stock_dividend_rate]) * opts[:option_expires_pct_year]
-
-      p1 = opts[:stock_price] * Math.exp(-opts[:stock_dividend_rate] * opts[:option_expires_pct_year])
-      
-      sqrt_expires = Math.sqrt(opts[:option_expires_pct_year])
-
-      d1 = (du + opts[:volatility_assumption] * opts[:volatility_assumption] * opts[:option_expires_pct_year] / 2) / (opts[:volatility_assumption] * sqrt_expires)
-
-      nd = Math.exp(-d1 * d1 / 2) / Math.sqrt(2 * Math::PI)
-      return p1 * sqrt_expires * nd
+      opts[:price_vs_rate_vs_expires] * opts[:option_expires_pct_year_sqrt] * opts[:nd1] / 100
     end
   end
 end

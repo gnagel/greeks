@@ -1,7 +1,7 @@
 module Math
   module Greeks
     class CalculatorAll
-      SQRT_2PI = Math::sqrt(2 * Math::PI)
+      SQRT_2PI = Math.sqrt(2 * Math::PI)
       
       class GreekCalculations
         extend  Math::GreekCalculations
@@ -35,7 +35,7 @@ module Math
       end
       
       def option_expires_pct_year_sqrt
-        @option_expires_pct_year_sqrt ||= Math::sqrt(option_expires_pct_year)
+        @option_expires_pct_year_sqrt ||= Math.sqrt(option_expires_pct_year)
       end
       
       def stock_dividend_rate_f
@@ -57,7 +57,7 @@ module Math
         return nil if option_price.nil? || option_price < 0
         
         if (option_type === :call)
-      		@break_even ||= GreekCalculations.normal_distribution((Math::log(stock_price / (option_strike + option_price)) + (federal_reserve_interest_rate_f - stock_dividend_rate_f - iv * iv / 2) * option_expires_pct_year) / (iv * option_expires_pct_year_sqrt))
+      		@break_even ||= GreekCalculations.normal_distribution((Math.log(stock_price / (option_strike + option_price)) + (federal_reserve_interest_rate_f - stock_dividend_rate_f - iv * iv / 2) * option_expires_pct_year) / (iv * option_expires_pct_year_sqrt))
         else
     			@break_even ||= GreekCalculations.normal_distribution(-(Math.log(stock_price / (option_strike - option_price)) + (federal_reserve_interest_rate_f - stock_dividend_rate_f - iv * iv / 2) * option_expires_pct_year) / (iv * option_expires_pct_year_sqrt))
         end
@@ -107,7 +107,7 @@ module Math
       def annualized_premium_value
         return nil if option_price.nil? || option_price < 0
         
-        @annualized_premium_value ||= 100 * Math::log(1 + option_price / option_strike) / option_expires_pct_year;
+        @annualized_premium_value ||= 100 * Math.log(1 + option_price / option_strike) / option_expires_pct_year;
 
         value_if_gte_0(@annualized_premium_value)
       end
@@ -123,7 +123,7 @@ module Math
       def annualized_time_value
         return nil if time_value.nil?
         
-        @annualized_time_value ||= 100 * Math::log(1.0 + time_value / option_strike) / option_expires_pct_year
+        @annualized_time_value ||= 100 * Math.log(1.0 + time_value / option_strike) / option_expires_pct_year
         
         value_if_gte_0(@annualized_time_value)
       end
@@ -205,8 +205,9 @@ module Math
       # the price of the option to $1.05. In percentage terms, the vega in this case would be ($0.05/$1.00)/(1 percentage point) = 5%.
       def vega
         return nil if iv.nil?
-        
-      	@vega ||= p1 * option_expires_pct_year_sqrt * nd1 / 100
+
+        @vega ||= GreekCalculations.vega(:price_vs_rate_vs_expires => price_vs_rate_vs_expires, :nd1 => nd1, :option_expires_pct_year_sqrt => option_expires_pct_year_sqrt)
+      	#@vega ||= price_vs_rate_vs_expires * option_expires_pct_year_sqrt * nd1 / 100
 
         @vega
       end
@@ -218,13 +219,7 @@ module Math
       def rho
         return nil if iv.nil?
         
-        if (option_type === :call)
-          @rho ||= option_expires_pct_year * x1 * d2_normal_distribution / 100
-        else
-          @rho ||= -option_expires_pct_year * x1 * d2_normal_distribution / 100
-        end
-
-        @rho
+        @rho ||= GreekCalculations.rho(:option_type => option_type, :option_expires_pct_year => option_expires_pct_year, :strike_vs_fed_vs_expires => strike_vs_fed_vs_expires, :d2_normal_distribution => d2_normal_distribution)
       end
 
 
@@ -238,9 +233,9 @@ module Math
         return nil if iv.nil?
         
         if (option_type === :call)
-          @theta ||= (-p1 * nd1 * iv / (2 * option_expires_pct_year_sqrt) + stock_dividend_rate_f * p1 * d1_normal_distribution - federal_reserve_interest_rate_f * x1 * d2_normal_distribution) / 365
+          @theta ||= (-price_vs_rate_vs_expires * nd1 * iv / (2 * option_expires_pct_year_sqrt) + stock_dividend_rate_f * price_vs_rate_vs_expires * d1_normal_distribution - federal_reserve_interest_rate_f * strike_vs_fed_vs_expires * d2_normal_distribution) / 365
         else
-          @theta ||= (-p1 * nd1 * iv / (2 * option_expires_pct_year_sqrt) - stock_dividend_rate_f * p1 * d1_normal_distribution + federal_reserve_interest_rate_f * x1 * d2_normal_distribution) / 365
+          @theta ||= (-price_vs_rate_vs_expires * nd1 * iv / (2 * option_expires_pct_year_sqrt) - stock_dividend_rate_f * price_vs_rate_vs_expires * d1_normal_distribution + federal_reserve_interest_rate_f * strike_vs_fed_vs_expires * d2_normal_distribution) / 365
         end
 
         @theta
@@ -290,23 +285,23 @@ module Math
       end
       
 
-      def p1
-        @p1 ||= stock_price * Math::exp(-stock_dividend_rate_f * option_expires_pct_year)
+      def price_vs_rate_vs_expires
+        @price_vs_rate_vs_expires ||= GreekCalculations.iv_price_vs_rate_vs_expires(stock_price, option_expires_pct_year, stock_dividend_rate_f)
       end
 
       
-      def eqt
-        @eqt ||= Math::exp(-stock_dividend_rate_f * option_expires_pct_year)
+      def rate_vs_expires
+        @eqt ||= GreekCalculations.iv_rate_vs_expires(option_expires_pct_year, stock_dividend_rate_f)
       end
 
       
       def du
-        @du ||= Math::log(stock_price / option_strike) + (federal_reserve_interest_rate_f - stock_dividend_rate_f) * option_expires_pct_year
+        @du ||= GreekCalculations.iv_du(stock_price, option_strike, option_expires_pct_year, federal_reserve_interest_rate_f, stock_dividend_rate_f)
       end
 
       
-      def x1
-        @x1 ||= option_strike * Math::exp(-federal_reserve_interest_rate_f * option_expires_pct_year)
+      def strike_vs_fed_vs_expires
+        @strike_vs_fed_vs_expires ||= GreekCalculations.iv_strike_vs_fed_vs_expires(option_strike, option_expires_pct_year, federal_reserve_interest_rate_f)
       end
 
       
@@ -343,7 +338,7 @@ module Math
 
 
       def nd1
-        @nd1 ||= Math::exp(-0.5 * d1 * d1) / SQRT_2PI
+        @nd1 ||= Math.exp(-0.5 * d1 * d1) / SQRT_2PI
       end
       
 

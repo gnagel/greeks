@@ -19,9 +19,18 @@ module Math
       Math.log(stock_price / option_strike) + (federal_reserve_interest_rate_f - stock_dividend_rate_f) * option_expires_pct_year
     end
     
+
+    def iv_rate_vs_expires(option_expires_pct_year, stock_dividend_rate_f)
+      Math.exp(option_expires_pct_year * -stock_dividend_rate_f)
+    end
     
+
     def iv_price_vs_rate_vs_expires(stock_price, option_expires_pct_year, stock_dividend_rate_f)
-      stock_price * Math.exp(option_expires_pct_year * -stock_dividend_rate_f)
+      stock_price * iv_rate_vs_expires(option_expires_pct_year, stock_dividend_rate_f)
+    end
+    
+    def iv_strike_vs_fed_vs_expires(option_strike, option_expires_pct_year, federal_reserve_interest_rate_f)
+      option_strike * Math.exp(option_expires_pct_year * -federal_reserve_interest_rate_f)
     end
     
 
@@ -33,16 +42,16 @@ module Math
 
 
     def iv_option_price(stock_price, option_strike, option_expires_pct_year, volatility_guess, federal_reserve_interest_rate_f, stock_dividend_rate_f, option_type, var_du, var_price_vs_rate_vs_expires)
-      var_sq_time = Math::sqrt(option_expires_pct_year)
-    	var_x1       = option_strike * Math.exp(-federal_reserve_interest_rate_f * option_expires_pct_year)
-    	var_d1       = (var_du + volatility_guess * volatility_guess * option_expires_pct_year / 2) / (volatility_guess * var_sq_time)
-    	var_d2       = var_d1 - volatility_guess * var_sq_time
+      var_sq_time                 = Math::sqrt(option_expires_pct_year)
+    	var_strike_vs_fed_vs_expires = iv_strike_vs_fed_vs_expires(option_strike, option_expires_pct_year, federal_reserve_interest_rate_f)
+    	var_d1                       = (var_du + volatility_guess * volatility_guess * option_expires_pct_year / 2) / (volatility_guess * var_sq_time)
+    	var_d2                       = var_d1 - volatility_guess * var_sq_time
       
       case option_type
       when :call
-    		return var_price_vs_rate_vs_expires * normal_distribution(var_d1) - var_x1 * normal_distribution(var_d2)
+    		return var_price_vs_rate_vs_expires * normal_distribution(var_d1) - var_strike_vs_fed_vs_expires * normal_distribution(var_d2)
       when :put
-    		return var_x1 * normal_distribution(-var_d2) - var_price_vs_rate_vs_expires * normal_distribution(-var_d1)
+    		return var_strike_vs_fed_vs_expires * normal_distribution(-var_d2) - var_price_vs_rate_vs_expires * normal_distribution(-var_d1)
       else
         raise "Invalid option_type = #{option_type.inspect}"
       end

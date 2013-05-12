@@ -1,41 +1,19 @@
 module Math
   module GreekCalculations
-    def rho!(opts = {})
-      opts[:rho] = rho(opts)
-    end
-
-
+    # Rho
+    # The change in the value of an option for a change in the prevailing interest rate that matches the duration of the option,
+    # all else held equal. Generally rho is not a big driver of price changes for options, as interest rates tend to be relatively stable.
     def rho(opts = {})
-      [
-        :iv,
-        :stock_price,
-        :option_type,
-        :option_strike,
-        :option_expires_pct_year,
-        :federal_reserve_interest_rate
-      ].each do |required_key|
-        raise ArgumentError, "Missing value for key=#{required_key} in opts=#{opts.inspect}" if opts[required_key].nil?
-      end
-      
-      sqrt_expires = Math.sqrt(opts[:option_expires_pct_year])
-      sqrt_expires2 = sqrt_expires * 2
-      iv_sqrt_expires = opts[:iv] * sqrt_expires
+      opts.requires_fields(:option_type, :option_expires_pct_year, :strike_vs_fed_vs_expires, :d2_normal_distribution)
 
-      d1 = (Math.log(opts[:stock_price] / opts[:option_strike]) + opts[:federal_reserve_interest_rate] * t) /  iv_sqrt_expires + 0.5 * iv_sqrt_expires
-      
-      ndE = normal_distribution(d1 - iv_sqrt_expires)
-      ndG = normal_distribution_gaussian(d1)
-      
-      part1 = opts[:option_strike] * opts[:option_expires_pct_year]
-      part2 = Math.exp(-opts[:federal_reserve_interest_rate] * opts[:option_expires_pct_year])
-
-      if (opts[:option_type] === :call)
-          rho = 0.01 * part1 * part2 * ndE
+      case opts[:option_type]
+      when :call
+        return  opts[:option_expires_pct_year] * opts[:strike_vs_fed_vs_expires] * opts[:d2_normal_distribution] / 100
+      when :put
+        return -opts[:option_expires_pct_year] * opts[:strike_vs_fed_vs_expires] * opts[:d2_normal_distribution] / 100
       else
-          rho = -0.01 * part1 * part2 * (1 - ndE)
+        raise "Invalid option_type = #{opts[:option_type].inspect}"
       end
-      
-      rho
     end
   end
 end
