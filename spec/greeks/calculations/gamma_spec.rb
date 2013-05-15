@@ -3,30 +3,6 @@ require File.expand_path("../../spec_helper.rb", File.dirname(__FILE__))
 describe "Math::GreekCalculations::gamma" do
   extend  Math::GreekCalculations
   include Math::GreekCalculations
-
-  before(:all) {
-    @opts                     = {
-      :iv                            => 7.7,
-      :stock_price                   => 1614.42,
-      :option_type                   => :call,
-      :option_strike                 => 1615.00,
-      :option_expires_pct_year       => (7.0 + 1.0) / 365.0,
-      :federal_reserve_interest_rate => 0.0,
-    }
-  }
   
-  it "should take 0.000005s per calculation" do
-    test_speed(0.000005) { gamma(@opts) }
-  end
-
-  it "should calculate the gamma" do
-    expect {gamma(@opts.merge(:option_strike => 1650.00, :iv => nil))}.to raise_error ArgumentError
-    gamma(@opts.merge(:option_strike => 1615.00, :iv => 7.7)).should === 71.0
-    gamma(@opts.merge(:option_strike => 1620.00, :iv => 7.7)).should === 87.4
-    gamma(@opts.merge(:option_strike => 1625.00, :iv => 7.6)).should === 105.7
-    gamma(@opts.merge(:option_strike => 1630.00, :iv => 7.6)).should === 124.6
-    gamma(@opts.merge(:option_strike => 1635.00, :iv => 7.6)).should === 143.7
-    gamma(@opts.merge(:option_strike => 1640.00, :iv => 7.8)).should === 157.3
-    gamma(@opts.merge(:option_strike => 1645.00, :iv => 7.8)).should === 178.6
-  end
+  it { gamma(:stock_price => 1.0, :option_expires_pct_year_sqrt => 2.0, :iv => 3.0, :nd1 => 4.0, :rate_vs_expires => 5.0).round(2).should. === 3.33 }
 end

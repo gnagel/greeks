@@ -3,30 +3,8 @@ require File.expand_path("../../spec_helper.rb", File.dirname(__FILE__))
 describe "Math::GreekCalculations::theta" do
   extend  Math::GreekCalculations
   include Math::GreekCalculations
-
-  before(:all) {
-    @opts                     = {
-      :iv                            => 7.7,
-      :stock_price                   => 1614.42,
-      :option_type                   => :call,
-      :option_strike                 => 1615.00,
-      :option_expires_pct_year       => (7.0 + 1.0) / 365.0,
-      :federal_reserve_interest_rate => 0.0,
-    }
-  }
   
-  it "should take 0.000005s per calculation" do
-    test_speed(0.000005) { theta(@opts) }
-  end
-
-  it "should calculate the theta" do
-    expect {theta(@opts.merge(:option_strike => 1650.00, :iv => nil))}.to raise_error ArgumentError
-    theta(@opts.merge(:option_strike => 1615.00, :iv => 7.7)).should === -6.50
-    theta(@opts.merge(:option_strike => 1620.00, :iv => 7.7)).should === -8.96
-    theta(@opts.merge(:option_strike => 1625.00, :iv => 7.6)).should === -12.07
-    theta(@opts.merge(:option_strike => 1630.00, :iv => 7.6)).should === -15.84
-    theta(@opts.merge(:option_strike => 1635.00, :iv => 7.6)).should === -20.25
-    theta(@opts.merge(:option_strike => 1640.00, :iv => 7.8)).should === -24.74
-    theta(@opts.merge(:option_strike => 1645.00, :iv => 7.8)).should === -30.63
-  end
+  it { theta(:option_type => :call, :stock_dividend_rate_f => 1.0005, :federal_reserve_interest_rate_f => 2.0002, :option_expires_pct_year_sqrt => 1.0, :iv => 1.0, :strike_vs_fed_vs_expires => 3.0, :price_vs_rate_vs_expires => 4.0, :nd1 => 5.0, :d1_normal_distribution => 6.0, :d2_normal_distribution => 7.0).should === -0.0766909589041096 }
+  
+  it { theta(:option_type => :put,  :stock_dividend_rate_f => 1.0005, :federal_reserve_interest_rate_f => 2.0002, :option_expires_pct_year_sqrt => 1.0, :iv => 1.0, :strike_vs_fed_vs_expires => 3.0, :price_vs_rate_vs_expires => 4.0, :nd1 => 5.0, :d1_normal_distribution => 6.0, :d2_normal_distribution => 7.0).should === 0.021896438356164394 }
 end

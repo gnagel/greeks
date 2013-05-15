@@ -184,10 +184,8 @@ module Math
       # The $10 change in stock price caused a $0.25 change in delta, so gamma is approximately $0.25/10, or $0.025, in this case.
       def gamma
         return nil if iv.nil?
-        
-      	@gamma ||= nd1 * rate_vs_expires / (stock_price * iv * option_expires_pct_year_sqrt)
 
-        @gamma
+        @gamma ||= GreekCalculations.gamma(:stock_price => stock_price, :option_expires_pct_year_sqrt => option_expires_pct_year_sqrt, :iv => iv, :nd1 => nd1, :rate_vs_expires => rate_vs_expires)
       end
 
 
