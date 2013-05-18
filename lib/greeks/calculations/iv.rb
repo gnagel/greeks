@@ -64,7 +64,6 @@ module Math
     end
     
     
-    # lastPrice, strike, exptime, irate, yield, 0, oprice
     def iv_calc(stock_price, option_strike, option_expires_pct_year, federal_reserve_interest_rate_f, stock_dividend_rate_f, option_type, option_price)
       # Contstant values for the calculations
       var_du                       = iv_du(stock_price, option_strike, option_expires_pct_year, federal_reserve_interest_rate_f, stock_dividend_rate_f)
