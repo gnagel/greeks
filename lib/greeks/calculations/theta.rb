@@ -1,9 +1,10 @@
 module Math
   module GreekCalculations
     def theta(opts = {})
-      opts.requires_fields(:stock_dividend_rate_f, :federal_reserve_interest_rate_f, :option_type, :option_expires_pct_year_sqrt, :iv, :strike_vs_fed_vs_expires, :price_vs_rate_vs_expires, :nd1, :d1_normal_distribution, :d2_normal_distribution)
-      
+      opts.requires_keys_are_present(:iv)
       return nil if opts[:iv].nil?
+      
+      opts.requires_keys_are_not_nil(:stock_dividend_rate_f, :federal_reserve_interest_rate_f, :option_type, :option_expires_pct_year_sqrt, :iv, :strike_vs_fed_vs_expires, :price_vs_rate_vs_expires, :nd1, :d1_normal_distribution, :d2_normal_distribution)
       
       part0 = opts[:price_vs_rate_vs_expires] * opts[:nd1] * opts[:iv]
       part1 = 2 * opts[:option_expires_pct_year_sqrt]

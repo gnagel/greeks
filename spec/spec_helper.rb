@@ -1,5 +1,4 @@
 require 'rubygems'
-
 require 'rspec'
 require 'rspec-expectations'
 require 'benchmark'

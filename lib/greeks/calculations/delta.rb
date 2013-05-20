@@ -10,9 +10,11 @@ module Math
     # change in the option price for a one-percent change in the underlying security; this method of viewing the delta value
     # is also known as "leverage."
     def delta(opts)
-      opts.requires_fields(:option_type, :rate_vs_expires, :d1_normal_distribution, :iv)
-
+      opts.requires_keys_are_present(:iv)
       return nil if opts[:iv].nil?
+      
+      opts.requires_keys_are_not_nil(:option_type, :rate_vs_expires, :d1_normal_distribution, :iv)
+
 
       multiplier = case opts[:option_type]
       when :call

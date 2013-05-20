@@ -1,9 +1,11 @@
 module Math  
   module GreekCalculations
     def iv(opts)
-      opts.requires_fields(:stock_price, :option_strike, :option_expires_pct_year, :option_expires_pct_year_sqrt, :federal_reserve_interest_rate_f, :stock_dividend_rate_f, :option_type, :option_price, :rate_vs_expires, :price_vs_rate_vs_expires, :strike_vs_fed_vs_expires, :price_ratio_log_less_rates)
-
-      return nil if opts[:option_price].nil? || opts[:option_price] < 0
+      opts.requires_keys_are_present(:option_price)
+      return nil if opts[:option_price].nil?
+      return nil if opts[:option_price] <= 0
+      
+      opts.requires_keys_are_not_nil(:stock_price, :option_strike, :option_expires_pct_year, :option_expires_pct_year_sqrt, :federal_reserve_interest_rate_f, :stock_dividend_rate_f, :option_type, :option_price, :rate_vs_expires, :price_vs_rate_vs_expires, :strike_vs_fed_vs_expires, :price_ratio_log_less_rates)
       
       iv_calc(
         opts[:stock_price], 
