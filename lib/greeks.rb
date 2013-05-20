@@ -9,7 +9,6 @@ require_relative 'greeks/calculations/theta'
 require_relative 'greeks/calculations/rho'
 require_relative 'greeks/calculations/vega'
 require_relative 'greeks/calculations/time_values'
-require_relative 'greeks/version'
 
 
 module Math
@@ -290,23 +289,15 @@ module Math
           :option_type                   => option_type,
           :option_strike                 => option_strike,
           :option_price                  => option_price,
-          :break_even    => nil,
-          :iv            => nil,
-          :delta         => nil,
-          :gamma         => nil, 
-          :vega          => nil, 
-          :rho           => nil,
-          :theta         => nil,
-          :deta_vs_theta => nil,
+          :break_even                    => (NilMath.new(break_even) * 100.0).to_f,                      # break_even * 100
+          :iv                            => (NilMath.new(iv)         * 100.0).to_f,                      # iv * 100
+          :delta                         => (NilMath.new(delta)      * stock_price / option_price).to_f, # delta * stock_price / option_price
+          :gamma                         => (NilMath.new(gamma)      * stock_price / delta).to_f,        # gamma * stock_price / delta
+          :vega                          => (NilMath.new(vega)       * 100.0 * iv / option_price).to_f,  # vega * iv * 100 / option_price
+          :rho                           => (NilMath.new(rho)        * 100.0 / option_price).to_f,       # rho * 100 / option_price
+          :theta                         => (NilMath.new(theta)      * 100.0 / option_price).to_f,       # theta * 100 / option_price
+          :deta_vs_theta                 => nil,
         }
-        hash[:break_even]    = break_even * 100                   unless break_even.nil?
-        hash[:iv]            = iv * 100                           unless iv.nil?
-        hash[:delta]         = delta * stock_price / option_price unless delta.nil?
-        hash[:gamma]         = gamma * stock_price / delta        unless gamma.nil?
-        hash[:vega]          = vega * iv * 100 / option_price     unless vega.nil?
-        hash[:rho]           = rho * 100 / option_price           unless rho.nil?
-        hash[:theta]         = theta * 100 / option_price         unless theta.nil?
-
 
         # Delta/Theta
         # A measure of the “bang for the buck” of an option.
@@ -314,9 +305,10 @@ module Math
         # decay rate, the trend in the Delta/Theta column indicates which options give the most exposure
         # to the movement of the underlying stock or index for a given decay rate of the option value.
         # The highest numbers indicate the most bang for the buck for the least decay rate.
-        hash[:deta_vs_theta] = hash[:delta] / hash[:theta]        unless hash[:delta].nil? || hash[:theta].nil?
-        
-        [:iv, :delta, :gamma, :vega, :rho, :theta, :deta_vs_theta].each do |key|
+        hash[:deta_vs_theta] = (NilMath.new(hash[:delta]) / hash[:theta]).to_f
+
+        # Iterate the generated columns and round the output
+        [:break_even, :iv, :delta, :gamma, :vega, :rho, :theta, :deta_vs_theta].each do |key|
           hash[key] &&= hash[key].round(2)
         end
 
@@ -364,6 +356,46 @@ module Math
 
       def nd1
         @nd1 ||= GreekCalculations.misc_nd1(:d1 => d1)
+      end
+
+      class NilMath
+        def initialize(value)
+          @value = value
+        end
+        
+        def to_f
+          @value
+        end
+        
+        def *(input)
+          multiply(input)
+        end
+        
+        def /(input)
+          divide(input)
+        end
+        
+        def multiply(input)
+          if (@value.nil? || input.nil?)
+            @value = nil
+          else
+            @value *= input
+          end
+          self
+        end
+        
+        def multiply100()
+          multiply(100.0)
+        end
+        
+        def divide(input)
+          if (@value.nil? || input.nil?)
+            @value = nil
+          else
+            @value /= input
+          end
+          self
+        end
       end
 
     end
