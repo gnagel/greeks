@@ -132,6 +132,15 @@ module Math
       
       opts[:option_strike] * Math.exp(opts[:option_expires_pct_year] * -opts[:federal_reserve_interest_rate_f])
     end
+   
+
+    def misc_nd1(opts)
+      opts.requires_fields(:d1)
+
+      return nil if opts[:d1].nil?
+
+      Math.exp(-0.5 * opts[:d1] * opts[:d1]) / Math.sqrt(2 * Math::PI)
+    end
     
     
     def misc_d1(opts)

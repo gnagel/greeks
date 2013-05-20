@@ -1,8 +1,6 @@
 module Math
   module Greeks
     class CalculatorAll
-      SQRT_2PI = Math.sqrt(2 * Math::PI)
-
       class GreekCalculations
         extend  Math::GreekCalculations
       end
@@ -22,6 +20,7 @@ module Math
       attr_reader :rate_vs_expires
       attr_reader :price_vs_rate_vs_expires
       attr_reader :strike_vs_fed_vs_expires
+      attr_reader :price_ratio_log_less_rates
 
 
       def initialize(opts = {})
@@ -52,6 +51,14 @@ module Math
         
         @strike_vs_fed_vs_expires = GreekCalculations.misc_strike_vs_fed_vs_expires(
           :option_strike                   => option_strike,
+          :option_expires_pct_year         => option_expires_pct_year, 
+          :federal_reserve_interest_rate_f => federal_reserve_interest_rate_f
+        )
+        
+        @price_ratio_log_less_rates = GreekCalculations.misc_price_ratio_log_less_rates(
+          :stock_price                     => stock_price, 
+          :stock_dividend_rate_f           => stock_dividend_rate_f, 
+          :option_strike                   => option_strike, 
           :option_expires_pct_year         => option_expires_pct_year, 
           :federal_reserve_interest_rate_f => federal_reserve_interest_rate_f
         )
@@ -160,7 +167,7 @@ module Math
           :option_expires_pct_year         => option_expires_pct_year,
           :federal_reserve_interest_rate   => federal_reserve_interest_rate,
           :federal_reserve_interest_rate_f => federal_reserve_interest_rate_f,
-          :price_ratio_log_less_rates                              => price_ratio_log_less_rates,
+          :price_ratio_log_less_rates      => price_ratio_log_less_rates,
           :rate_vs_expires                 => rate_vs_expires,
           :strike_vs_fed_vs_expires        => strike_vs_fed_vs_expires,
         )
@@ -243,15 +250,15 @@ module Math
       # at $0.90 on Tuesday morning. Another way of measuring theta for that option is ($0.90 - $1)/$1 or -10% per day.
       def theta
         @theta ||= GreekCalculations.theta(
-          :stock_dividend_rate_f           => stock_dividend_rate_f, 
           :federal_reserve_interest_rate_f => federal_reserve_interest_rate_f, 
+          :stock_dividend_rate_f           => stock_dividend_rate_f, 
           :option_type                     => option_type, 
           :option_expires_pct_year_sqrt    => option_expires_pct_year_sqrt, 
-          :iv                              => iv, 
           :strike_vs_fed_vs_expires        => strike_vs_fed_vs_expires, 
           :price_vs_rate_vs_expires        => price_vs_rate_vs_expires, 
-          :nd1                             => nd1, 
           :price_ratio_log_less_rates      => price_ratio_log_less_rates,
+          :iv                              => iv, 
+          :nd1                             => nd1, 
           :d1_normal_distribution          => d1_normal_distribution, 
           :d2_normal_distribution          => d2_normal_distribution
         )
@@ -301,34 +308,22 @@ module Math
       end
       
 
-
-      
-      def price_ratio_log_less_rates
-        @price_ratio_log_less_rates ||= GreekCalculations.misc_price_ratio_log_less_rates(
-          :stock_price                     => stock_price, 
-          :stock_dividend_rate_f           => stock_dividend_rate_f, 
-          :option_strike                   => option_strike, 
-          :option_expires_pct_year         => option_expires_pct_year, 
-          :federal_reserve_interest_rate_f => federal_reserve_interest_rate_f
-          )
-      end
-
       
       def d1
         @d1 ||= GreekCalculations.misc_d1(
-          :price_ratio_log_less_rates                           => price_ratio_log_less_rates, 
-          :iv                           => iv, 
+          :price_ratio_log_less_rates   => price_ratio_log_less_rates, 
           :option_expires_pct_year      => option_expires_pct_year, 
-          :option_expires_pct_year_sqrt => option_expires_pct_year_sqrt
+          :option_expires_pct_year_sqrt => option_expires_pct_year_sqrt,
+          :iv                           => iv
         )
       end
 
 
       def d2
         @d2 ||= GreekCalculations.misc_d2(
+          :option_expires_pct_year_sqrt => option_expires_pct_year_sqrt,
           :d1                           => d1,
-          :iv                           => iv,
-          :option_expires_pct_year_sqrt => option_expires_pct_year_sqrt
+          :iv                           => iv
         )
       end
 
@@ -336,7 +331,7 @@ module Math
       def d1_normal_distribution
         @d1_normal_distribution ||= GreekCalculations.misc_d_normal_distribution(
           :option_type => option_type, 
-          :d_value => d1
+          :d_value     => d1
         )
       end
 
@@ -344,14 +339,15 @@ module Math
       def d2_normal_distribution
         @d2_normal_distribution ||= GreekCalculations.misc_d_normal_distribution(
           :option_type => option_type, 
-          :d_value => d2
+          :d_value     => d2
         )
       end
 
 
       def nd1
-        @nd1 ||= Math.exp(-0.5 * d1 * d1) / SQRT_2PI
+        @nd1 ||= GreekCalculations.misc_nd1(:d1 => d1)
       end
+
     end
   end
 end
