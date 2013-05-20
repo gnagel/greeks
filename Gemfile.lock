@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    greeks (0.0.1)
+    greeks (1.0)
       hash_plus
       require_all
 
