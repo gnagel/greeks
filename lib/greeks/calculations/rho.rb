@@ -6,14 +6,16 @@ module Math
     def rho(opts = {})
       opts.requires_fields(:option_type, :option_expires_pct_year, :strike_vs_fed_vs_expires, :d2_normal_distribution)
 
-      case opts[:option_type]
+      multiplier = case opts[:option_type]
       when :call
-        return  opts[:option_expires_pct_year] * opts[:strike_vs_fed_vs_expires] * opts[:d2_normal_distribution] / 100
+        1.0
       when :put
-        return -opts[:option_expires_pct_year] * opts[:strike_vs_fed_vs_expires] * opts[:d2_normal_distribution] / 100
+        -1.0
       else
         raise "Invalid option_type = #{opts[:option_type].inspect}"
       end
+      
+      multiplier * opts[:option_expires_pct_year] * opts[:strike_vs_fed_vs_expires] * opts[:d2_normal_distribution] / 100
     end
   end
 end

@@ -9,17 +9,19 @@ module Math
     # movement, the option will be worth $2 ($1 initial cost plus $1 delta). Delta can also be calculated as a percentage
     # change in the option price for a one-percent change in the underlying security; this method of viewing the delta value
     # is also known as "leverage."
-    def delta(opts = {})
+    def delta(opts)
       opts.requires_fields(:option_type, :rate_vs_expires, :d1_normal_distribution)
-      
-      case opts[:option_type]
+
+      multiplier = case opts[:option_type]
       when :call
-        return  opts[:rate_vs_expires] * opts[:d1_normal_distribution]
+        1.0
       when :put
-        return -opts[:rate_vs_expires] * opts[:d1_normal_distribution]
+        -1.0
       else
         raise "Invalid option_type = #{opts[:option_type].inspect}"
       end
+      
+      multiplier * opts[:rate_vs_expires] * opts[:d1_normal_distribution]
     end
   end
 end

@@ -2,12 +2,14 @@ PATH
   remote: .
   specs:
     greeks (0.0.1)
+      hash_plus
       require_all
 
 GEM
   remote: https://rubygems.org/
   specs:
     diff-lcs (1.2.4)
+    hash_plus (1.1)
     require_all (1.2.1)
     rspec (2.13.0)
       rspec-core (~> 2.13.0)

@@ -10,6 +10,7 @@ Gem::Specification.new do |gem|
   gem.homepage      = "https://github.com/gnagel/greeks"
   gem.summary       = %q{Calculate greeks for options trading (Implied Volatility, Delta, Gamma, Vega, Rho, and Theta)}
   gem.description   = %q{Calculate greeks (iv, delta, gamma, vega, rho, theta)}
+  
 
   gem.files         = `git ls-files`.split($/)
   gem.executables   = gem.files.grep(%r{^bin/}).map{ |f| File.basename(f) }
@@ -18,6 +19,7 @@ Gem::Specification.new do |gem|
 
   # System
   gem.add_dependency('require_all')
+  gem.add_dependency('hash_plus')
 
   gem.add_development_dependency('rspec')
   gem.add_development_dependency('rspec-expectations')
