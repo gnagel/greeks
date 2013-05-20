@@ -152,7 +152,7 @@ module Math
     end
    
 
-    def misc_d2
+    def misc_d2(opts)
       opts.requires_fields(:d1, :iv, :option_expires_pct_year_sqrt)
       
       return nil if opts[:iv].nil?

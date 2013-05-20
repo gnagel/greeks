@@ -15,7 +15,9 @@ require_relative 'greeks/version'
 module Math
   module Greeks
     class Calculator
-      extend  Math::GreekCalculations
+      class GreekCalculations
+        extend Math::GreekCalculations
+      end
 
       attr_reader :stock_price
       attr_reader :stock_dividend_rate
@@ -35,7 +37,7 @@ module Math
       attr_reader :price_ratio_log_less_rates
 
 
-      def initialize(opts = {})
+      def initialize(opts)
         @stock_price                   = opts[:stock_price]
         @stock_dividend_rate           = opts[:stock_dividend_rate]
         @option_type                   = opts[:option_type]
@@ -50,24 +52,24 @@ module Math
         @option_expires_pct_year_sqrt    = Math.sqrt(option_expires_pct_year)
         
         
-        @price_vs_rate_vs_expires = self.misc_price_vs_rate_vs_expires(
+        @price_vs_rate_vs_expires = GreekCalculations.misc_price_vs_rate_vs_expires(
           :stock_price             => stock_price,
           :stock_dividend_rate_f   => stock_dividend_rate_f,
           :option_expires_pct_year => option_expires_pct_year
         )
 
-        @rate_vs_expires = self.rate_vs_expires(
+        @rate_vs_expires = GreekCalculations.misc_rate_vs_expires(
           :option_expires_pct_year => option_expires_pct_year, 
           :stock_dividend_rate_f   => stock_dividend_rate_f
         )
         
-        @strike_vs_fed_vs_expires = self.misc_strike_vs_fed_vs_expires(
+        @strike_vs_fed_vs_expires = GreekCalculations.misc_strike_vs_fed_vs_expires(
           :option_strike                   => option_strike,
           :option_expires_pct_year         => option_expires_pct_year, 
           :federal_reserve_interest_rate_f => federal_reserve_interest_rate_f
         )
         
-        @price_ratio_log_less_rates = self.misc_price_ratio_log_less_rates(
+        @price_ratio_log_less_rates = GreekCalculations.misc_price_ratio_log_less_rates(
           :stock_price                     => stock_price, 
           :stock_dividend_rate_f           => stock_dividend_rate_f, 
           :option_strike                   => option_strike, 
@@ -84,7 +86,7 @@ module Math
       # If you believe the Chance of Breakeven is less than the probability that a stock will be beyond the
       # breakeven price at option expiration, then you believe the option is undervalued, and visa versa.
       def break_even
-        @break_even ||= self.break_even(
+        @break_even ||= GreekCalculations.break_even(
           :stock_price                     => stock_price, 
           :stock_dividend_rate_f           => stock_dividend_rate_f, 
           :federal_reserve_interest_rate_f => federal_reserve_interest_rate_f, 
@@ -105,7 +107,7 @@ module Math
       # chance of any further appreciation until expiration, and the difference between the price and the 
       # intrinsic value would be the time value.
       def premium_value
-        @premium_value ||= self.premium_value(
+        @premium_value ||= GreekCalculations.premium_value(
           :option_type   => option_type,
           :option_strike => option_strike,
           :stock_price   => stock_price
@@ -121,7 +123,7 @@ module Math
       # of $35 were trading for $7, the call would have a $5 intrinsic value ($40-$35) and a $2 time value ($7-$5). 
       # Time value will decay by expiration assuming the underlying security stays at the same price.
       def time_value
-        @time_value ||= self.time_value(
+        @time_value ||= GreekCalculations.time_value(
           :option_price  => option_price,
           :premium_value => premium_value
         )
@@ -134,7 +136,7 @@ module Math
       # For example, if a stock is trading at $50 and you sell a $50 strike 6 month call for $4, you are getting
       # paid 8% in 6 months, or about 16% annualized, in exchange for being willing to buy at $50, the current price.
       def annualized_premium_value
-        @annualized_premium_value ||= self.annualized_premium_value(
+        @annualized_premium_value ||= GreekCalculations.annualized_premium_value(
           :option_price            => option_price,
           :option_strike           => option_strike,
           :option_expires_pct_year => option_expires_pct_year
@@ -150,7 +152,7 @@ module Math
       # value of $7, the time value ($2) divided by the strike is ($2/$40) = 5%. Annualizing that time value 
       # to a one year horizon on a continuously compounded basis yields 9.76% (2 × ln(1 + 0.05)).
       def annualized_time_value
-        @annualized_time_value ||= self.annualized_time_value(
+        @annualized_time_value ||= GreekCalculations.annualized_time_value(
           :time_value              => time_value,
           :option_strike           => option_strike,
           :option_expires_pct_year => option_expires_pct_year
@@ -168,7 +170,7 @@ module Math
       # All else equal, the wider the market expects the range of possible outcomes to be for a stock's price,
       # the higher the implied volatility, and the more expensive the option.
       def iv
-        @iv ||= self.iv(
+        @iv ||= GreekCalculations.iv(
           :stock_price                     => stock_price,
           :stock_dividend_rate             => stock_dividend_rate,
           :stock_dividend_rate_f           => stock_dividend_rate_f,
@@ -177,11 +179,13 @@ module Math
           :option_strike                   => option_strike,
           :option_expires_in_days          => option_expires_in_days,
           :option_expires_pct_year         => option_expires_pct_year,
+          :option_expires_pct_year_sqrt    => option_expires_pct_year_sqrt,
           :federal_reserve_interest_rate   => federal_reserve_interest_rate,
           :federal_reserve_interest_rate_f => federal_reserve_interest_rate_f,
           :price_ratio_log_less_rates      => price_ratio_log_less_rates,
           :rate_vs_expires                 => rate_vs_expires,
           :strike_vs_fed_vs_expires        => strike_vs_fed_vs_expires,
+          :price_vs_rate_vs_expires        => price_vs_rate_vs_expires,
         )
       end
 
@@ -196,7 +200,7 @@ module Math
       # change in the option price for a one-percent change in the underlying security; this method of viewing the delta value
       # is also known as "leverage."
       def delta
-        @delta ||= self.delta(
+        @delta ||= GreekCalculations.delta(
           :option_type            => option_type, 
           :iv                     => iv,
           :rate_vs_expires        => rate_vs_expires, 
@@ -214,7 +218,7 @@ module Math
       # closer to $0.25. In this example, if the stock price changes from $50 to $60, then the delta will change from $0.50 to $0.75.
       # The $10 change in stock price caused a $0.25 change in delta, so gamma is approximately $0.25/10, or $0.025, in this case.
       def gamma
-        @gamma ||= self.gamma(
+        @gamma ||= GreekCalculations.gamma(
           :stock_price                  => stock_price, 
           :option_expires_pct_year_sqrt => option_expires_pct_year_sqrt, 
           :iv                           => iv, 
@@ -231,7 +235,7 @@ module Math
       # and the vega is $0.05, then a one-percentage-point increase in implied volatility to 21% would correspond to an increase in
       # the price of the option to $1.05. In percentage terms, the vega in this case would be ($0.05/$1.00)/(1 percentage point) = 5%.
       def vega
-        @vega ||= self.vega(
+        @vega ||= GreekCalculations.vega(
           :price_vs_rate_vs_expires     => price_vs_rate_vs_expires, 
           :option_expires_pct_year_sqrt => option_expires_pct_year_sqrt,
           :nd1                          => nd1, 
@@ -244,7 +248,7 @@ module Math
       # The change in the value of an option for a change in the prevailing interest rate that matches the duration of the option,
       # all else held equal. Generally rho is not a big driver of price changes for options, as interest rates tend to be relatively stable.
       def rho
-        @rho ||= self.rho(
+        @rho ||= GreekCalculations.rho(
           :option_type              => option_type, 
           :option_expires_pct_year  => option_expires_pct_year, 
           :strike_vs_fed_vs_expires => strike_vs_fed_vs_expires, 
@@ -261,7 +265,7 @@ module Math
       # For example, if an option trades at $1 on Monday morning and it has a theta of -$0.10 per day, you can expect the option to trade
       # at $0.90 on Tuesday morning. Another way of measuring theta for that option is ($0.90 - $1)/$1 or -10% per day.
       def theta
-        @theta ||= self.theta(
+        @theta ||= GreekCalculations.theta(
           :federal_reserve_interest_rate_f => federal_reserve_interest_rate_f, 
           :stock_dividend_rate_f           => stock_dividend_rate_f, 
           :option_type                     => option_type, 
@@ -324,7 +328,7 @@ module Math
 
       
       def d1
-        @d1 ||= self.misc_d1(
+        @d1 ||= GreekCalculations.misc_d1(
           :price_ratio_log_less_rates   => price_ratio_log_less_rates, 
           :option_expires_pct_year      => option_expires_pct_year, 
           :option_expires_pct_year_sqrt => option_expires_pct_year_sqrt,
@@ -334,7 +338,7 @@ module Math
 
 
       def d2
-        @d2 ||= self.misc_d2(
+        @d2 ||= GreekCalculations.misc_d2(
           :option_expires_pct_year_sqrt => option_expires_pct_year_sqrt,
           :d1                           => d1,
           :iv                           => iv
@@ -343,7 +347,7 @@ module Math
 
 
       def d1_normal_distribution
-        @d1_normal_distribution ||= self.misc_d_normal_distribution(
+        @d1_normal_distribution ||= GreekCalculations.misc_d_normal_distribution(
           :option_type => option_type, 
           :d_value     => d1
         )
@@ -351,7 +355,7 @@ module Math
 
 
       def d2_normal_distribution
-        @d2_normal_distribution ||= self.misc_d_normal_distribution(
+        @d2_normal_distribution ||= GreekCalculations.misc_d_normal_distribution(
           :option_type => option_type, 
           :d_value     => d2
         )
@@ -359,7 +363,7 @@ module Math
 
 
       def nd1
-        @nd1 ||= self.misc_nd1(:d1 => d1)
+        @nd1 ||= GreekCalculations.misc_nd1(:d1 => d1)
       end
 
     end
