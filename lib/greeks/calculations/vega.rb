@@ -7,7 +7,9 @@ module Math
     # and the vega is $0.05, then a one-percentage-point increase in implied volatility to 21% would correspond to an increase in
     # the price of the option to $1.05. In percentage terms, the vega in this case would be ($0.05/$1.00)/(1 percentage point) = 5%.
     def vega(opts = {})
-      opts.requires_fields(:price_vs_rate_vs_expires, :nd1, :option_expires_pct_year_sqrt)
+      opts.requires_fields(:price_vs_rate_vs_expires, :nd1, :option_expires_pct_year_sqrt, :iv)
+
+      return nil if opts[:iv].nil?
 
       opts[:price_vs_rate_vs_expires] * opts[:option_expires_pct_year_sqrt] * opts[:nd1] / 100
     end

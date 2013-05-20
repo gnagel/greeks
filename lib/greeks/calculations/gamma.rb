@@ -10,6 +10,8 @@ module Math
     # The $10 change in stock price caused a $0.25 change in delta, so gamma is approximately $0.25/10, or $0.025, in this case.
     def gamma(opts = {})
       opts.requires_fields(:stock_price, :option_expires_pct_year_sqrt, :iv, :nd1, :rate_vs_expires)
+
+      return nil if opts[:iv].nil?
       
     	opts[:nd1] * opts[:rate_vs_expires] / (opts[:stock_price] * opts[:iv] * opts[:option_expires_pct_year_sqrt])
     end
