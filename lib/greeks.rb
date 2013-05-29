@@ -289,7 +289,6 @@ module Math
           :option_type                   => option_type,
           :option_strike                 => option_strike,
           :option_price                  => option_price,
-          :break_even                    => (NilMath.new(break_even) * 100.0).to_f,                      # break_even * 100
           :iv                            => (NilMath.new(iv)         * 100.0).to_f,                      # iv * 100
           :delta                         => (NilMath.new(delta)      * stock_price / option_price).to_f, # delta * stock_price / option_price
           :gamma                         => (NilMath.new(gamma)      * stock_price / delta).to_f,        # gamma * stock_price / delta
@@ -297,6 +296,7 @@ module Math
           :rho                           => (NilMath.new(rho)        * 100.0 / option_price).to_f,       # rho * 100 / option_price
           :theta                         => (NilMath.new(theta)      * 100.0 / option_price).to_f,       # theta * 100 / option_price
           :deta_vs_theta                 => nil,
+          :break_even                    => (NilMath.new(break_even) * 100.0).to_f,                      # break_even * 100
         }
 
         # Delta/Theta

@@ -81,11 +81,12 @@ module Math
     # If you believe the Chance of Breakeven is less than the probability that a stock will be beyond the
     # breakeven price at option expiration, then you believe the option is undervalued, and visa versa.
     def break_even(opts)
-      opts.requires_fields(:option_type, :option_price, :option_strike, :option_expires_pct_year, :option_expires_pct_year_sqrt, :stock_price, :stock_dividend_rate_f, :federal_reserve_interest_rate_f, :iv)
-
+      opts.requires_keys_are_present(:option_price, :iv)
       return nil if opts[:option_price].nil?
       return nil if opts[:option_price] < 0
       return nil if opts[:iv].nil?
+
+      opts.requires_keys_are_not_nil(:option_type, :option_price, :option_strike, :option_expires_pct_year, :option_expires_pct_year_sqrt, :stock_price, :stock_dividend_rate_f, :federal_reserve_interest_rate_f, :iv)
       
       part1 = (opts[:federal_reserve_interest_rate_f] - opts[:stock_dividend_rate_f] - opts[:iv] * opts[:iv] / 2) * opts[:option_expires_pct_year]
       part2 = opts[:iv] * opts[:option_expires_pct_year_sqrt]
@@ -135,35 +136,39 @@ module Math
    
 
     def misc_nd1(opts)
-      opts.requires_fields(:d1)
-
+      opts.requires_keys_are_present(:d1)
       return nil if opts[:d1].nil?
+
+      opts.requires_keys_are_not_nil(:d1)
 
       Math.exp(-0.5 * opts[:d1] * opts[:d1]) / Math.sqrt(2 * Math::PI)
     end
     
     
     def misc_d1(opts)
-      opts.requires_fields(:price_ratio_log_less_rates, :iv, :option_expires_pct_year, :option_expires_pct_year_sqrt)
-      
+      opts.requires_keys_are_present(:iv)
       return nil if opts[:iv].nil?
+
+      opts.requires_keys_are_not_nil(:price_ratio_log_less_rates, :iv, :option_expires_pct_year, :option_expires_pct_year_sqrt)
       
       (opts[:price_ratio_log_less_rates] + opts[:iv] * opts[:iv] * opts[:option_expires_pct_year] / 2) / (opts[:iv] * opts[:option_expires_pct_year_sqrt])
     end
    
 
     def misc_d2(opts)
-      opts.requires_fields(:d1, :iv, :option_expires_pct_year_sqrt)
-      
+      opts.requires_keys_are_present(:iv)
       return nil if opts[:iv].nil?
+
+      opts.requires_keys_are_not_nil(:d1, :iv, :option_expires_pct_year_sqrt)
       
       opts[:d1] - opts[:iv] * opts[:option_expires_pct_year_sqrt]
     end
 
     def misc_d_normal_distribution(opts)
-      opts.requires_fields(:option_type, :d_value)
-      
+      opts.requires_keys_are_present(:d_value)
       return nil if opts[:d_value].nil?
+
+      opts.requires_keys_are_not_nil(:option_type, :d_value)
       
       multiplier = case opts[:option_type]
       when :call
