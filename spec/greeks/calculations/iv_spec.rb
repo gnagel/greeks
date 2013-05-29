@@ -28,6 +28,10 @@ describe "Math::GreekCalculations::iv" do
       :price_ratio_log_less_rates      => 1.0,
       ).should === 21453795590575736000000.0
   }
+  
+  it {
+    iv(:stock_price=>1558.86, :stock_dividend_rate_f=>0.0, :federal_reserve_interest_rate_f=>0.0, :option_type=>:put, :option_price=>0.0, :option_strike=>800.0, :option_expires_pct_year=>0.00821917808219178, :option_expires_pct_year_sqrt=>0.09065968278232492, :iv=>nil).should be_nil
+  }
 
   it { 
     iv(

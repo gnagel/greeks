@@ -107,4 +107,10 @@ describe Math::Greeks::Calculator do
     it { calc.to_hash[:rho].should === put[:rho] }
     it { calc.to_hash[:break_even].round(2).should === put[:break_even] }
   end
+  
+  it {
+    calculator = Math::Greeks::Calculator.new(:stock_price=>1558.86, :stock_dividend_rate=>0.0, :federal_reserve_interest_rate=>0.0, :option_type=>:call, :option_price=>751.50, :option_strike=>800.00, :option_expires_in_days=>2)
+    calculator.iv.should be_nil
+    calculator.to_hash[:iv].should be_nil
+  }
 end
