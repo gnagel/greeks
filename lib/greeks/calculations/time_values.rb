@@ -2,7 +2,7 @@ module Math
   module GreekCalculations
     
     def nil_or_gte0(value)
-      value.nil? || value.to_f < 0 ? nil : value
+      value.nil? || value.to_f <= 0.0 ? nil : value
     end
 
 
@@ -15,14 +15,16 @@ module Math
     def premium_value(opts)
       opts.requires_fields(:option_type, :option_strike, :stock_price)
       
-      case opts[:option_type]
+      value = case opts[:option_type]
       when :call
-        return [opts[:stock_price] - opts[:option_strike], 0].max
+        [opts[:stock_price] - opts[:option_strike], 0].max
       when :put
-        return [opts[:option_strike] - opts[:stock_price], 0].max
+        [opts[:option_strike] - opts[:stock_price], 0].max
       else
         raise ArgumentError, "Invalid option_type = #{opts[:option_type]}"
       end
+      
+      nil_or_gte0(value)
     end
 
 
@@ -34,10 +36,8 @@ module Math
     # of $35 were trading for $7, the call would have a $5 intrinsic value ($40-$35) and a $2 time value ($7-$5). 
     # Time value will decay by expiration assuming the underlying security stays at the same price.
     def time_value(opts)
-      opts.requires_fields(:option_price, :premium_value)
-
-      return nil if opts[:option_price].nil?
-      return nil if opts[:option_price] < 0
+      return nil if opts[:option_price].nil? || opts[:option_price] < 0
+      return nil if opts[:premium_value].nil? || opts[:premium_value] < 0
       
       nil_or_gte0(opts[:option_price] - opts[:premium_value])
     end
@@ -48,11 +48,10 @@ module Math
     # premium to develop an intuitive understanding of how much the market is "paying" for a dollar of risk. 
     # For example, if a stock is trading at $50 and you sell a $50 strike 6 month call for $4, you are getting
     # paid 8% in 6 months, or about 16% annualized, in exchange for being willing to buy at $50, the current price.
-    def annualized_premium_value
-      opts.requires_fields(:option_price, :option_strike, :option_expires_pct_year)
-
+    def annualized_premium_value(opts)
       return nil if opts[:option_price].nil?
       return nil if opts[:option_price] < 0
+      opts.requires_fields(:option_price, :option_strike, :option_expires_pct_year)
 
       nil_or_gte0(100 * Math.log(1 + opts[:option_price] / opts[:option_strike]) / opts[:option_expires_pct_year])
     end
@@ -65,10 +64,9 @@ module Math
     # six month call on that stock with a strike price of $35 has an intrinsic value of $5 and a total 
     # value of $7, the time value ($2) divided by the strike is ($2/$40) = 5%. Annualizing that time value 
     # to a one year horizon on a continuously compounded basis yields 9.76% (2 × ln(1 + 0.05)).
-    def annualized_time_value
+    def annualized_time_value(opts)
+      return nil if opts[:time_value].nil? || opts[:time_value] < 0
       opts.requires_fields(:option_strike, :option_expires_pct_year, :time_value)
-
-      return nil if opts[:time_value].nil?
       
       nil_or_gte0(100 * Math.log(1.0 + opts[:time_value] / opts[:option_strike]) / opts[:option_expires_pct_year])
     end

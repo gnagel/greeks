@@ -3,7 +3,6 @@ require File.expand_path("../../spec_helper.rb", File.dirname(__FILE__))
 describe "Math::GreekCalculations::iv_option_price" do
   include Math
   include Math::GreekCalculations
-  include Math::GreekCalculationHelpers
 
   let(:stock_price) { 10.00 }
   let(:stock_dividend_rate_f) { 0.00 }
