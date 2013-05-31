@@ -23,13 +23,19 @@ describe Math::Greeks::Calculator do
     end
   end
 
-  context "22 days" do
-    it { compare_csv(22, :call) }
-    it { compare_csv(22, :put) }
+  it ":call options @ 22 days" do
+    compare_csv(22, :call)
   end
 
-  context "50 days" do
-    it { compare_csv(50, :call) }
-    it { compare_csv(50, :put) }
+  it ":put options @ 22 days" do
+    compare_csv(22, :put)
+  end
+
+  it ":call options @ 50 days" do
+    compare_csv(50, :call)
+  end
+
+  it ":put options @ 50 days" do
+    compare_csv(50, :put)
   end
 end
