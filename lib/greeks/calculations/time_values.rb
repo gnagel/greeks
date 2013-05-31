@@ -2,7 +2,7 @@ module Math
   module GreekCalculations
     
     def nil_or_gte0(value)
-      value.nil? || value.to_f <= 0.0 ? nil : value
+      value.nil? || value.to_f < 0.0 ? nil : value
     end
 
 

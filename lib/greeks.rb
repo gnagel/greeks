@@ -34,6 +34,10 @@ module Math
       attr_reader :price_vs_rate_vs_expires
       attr_reader :strike_vs_fed_vs_expires
       attr_reader :price_ratio_log_less_rates
+      
+      # Optional fields
+      attr_reader :option_volume
+      attr_reader :option_open_interest
 
 
       def initialize(opts)
@@ -49,6 +53,9 @@ module Math
         @stock_dividend_rate_f           = stock_dividend_rate / 100.0
         @option_expires_pct_year         = (option_expires_in_days + 1.0) / 365.0
         @option_expires_pct_year_sqrt    = Math.sqrt(option_expires_pct_year)
+        
+        @option_volume        = opts[:option_volume]
+        @option_open_interest = opts[:option_open_interest]
         
         
         @price_vs_rate_vs_expires = GreekCalculations.misc_price_vs_rate_vs_expires(
@@ -290,6 +297,8 @@ module Math
           :option_type                   => option_type,
           :option_strike                 => option_strike,
           :option_price                  => option_price,
+          :option_volume                 => option_volume,
+          :option_open_interest          => option_open_interest,
           :premium_value                 => premium_value,
           :time_value                    => time_value,
           :annualized_premium_value      => annualized_premium_value,

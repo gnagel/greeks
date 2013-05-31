@@ -16,7 +16,17 @@ RSpec::Matchers.define :be_a_greeks_hash do |expected|
     # Delete all the values that match
     # This will leave only the values that differ
     expected.keys.dup.each do |key|
-      expected.delete(key) if hash[key] == expected[key]
+      if hash[key] == expected[key]
+        expected.delete(key) 
+        next
+      end
+      
+      if hash[key].class == expected[key].class && !hash[key].nil? && !hash[key].is_a?(Symbol) && hash[key].round(1) == expected[key].round(1)
+        expected.delete(key) 
+        next
+      end
+      
+      expected[key] = "#{expected.delete(key).inspect}(e) vs #{hash[key].inspect}(a)"
     end
     verbose_puts "Hash: #{hash}"
     verbose_puts "Expected: #{expected}"

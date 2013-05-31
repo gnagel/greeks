@@ -6,12 +6,19 @@ describe Math::Greeks::Calculator do
     
     table.each do |row|
       # Convert to a hash
-      row = row.to_hash.merge(:option_type => option_type)
+      row = row.to_hash
 
       # Strip empty/nil values 
-      row.each { |k,v| row[k] = nil if v.to_s === "nil" || v.to_s.strip.empty? }
+      row.each do |k,v| 
+        if v.to_s === "nil" || v.to_s.strip.empty?
+          row[k] = nil
+        else
+          row[k] = row[k].to_f
+        end
+      end
       
       # Calculate the options
+      row.merge!(:option_type => option_type)
       Math::Greeks::Calculator.new(row).should be_a_greeks_hash row
     end
   end
