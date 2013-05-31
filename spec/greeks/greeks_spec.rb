@@ -1,6 +1,7 @@
 require File.expand_path("../spec_helper.rb", File.dirname(__FILE__))
 
 describe Math::Greeks::Calculator do
+  # Helper method to iterate the sample data
   def compare_csv(days, option_type)
     table = CSV.table(File.join(File.dirname(__FILE__), "#{days}days.#{option_type}s.csv"))
     
@@ -23,19 +24,19 @@ describe Math::Greeks::Calculator do
     end
   end
 
-  it ":call options @ 22 days" do
+  it "compute call options @ 22 days" do
     compare_csv(22, :call)
   end
 
-  it ":put options @ 22 days" do
+  it "compute put options @ 22 days" do
     compare_csv(22, :put)
   end
 
-  it ":call options @ 50 days" do
+  it "compute call options @ 50 days" do
     compare_csv(50, :call)
   end
 
-  it ":put options @ 50 days" do
+  it "compute put options @ 50 days" do
     compare_csv(50, :put)
   end
 end
