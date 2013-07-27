@@ -1,0 +1,8 @@
+#!/bin/sh
+
+export GOPATH=$PWD/
+
+echo "Installing dependencies ..."
+
+go get "github.com/orfjackal/gospec/src/gospec"
+go get "github.com/jessevdk/go-flags"

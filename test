@@ -1,0 +1,32 @@
+#!/bin/sh
+
+export GOPATH=$PWD/
+
+echo "......................"
+echo "Testing Greeks ......."
+echo "......................"
+echo ""
+
+# Make sure the dependencies are setup
+# Import the script into this namespace
+. ./configure
+
+# Make sure the app builds
+. ./build
+
+# Run the tests
+# This will run the "all_spec_test.go" suite of tests
+echo "......................"
+echo "Running tests ........"
+echo "... and .............."
+echo "Benchmarks ..........."
+echo "......................"
+echo ""
+
+export GOMAXPROCS=1
+go test ./greeks -benchtime 5s -bench ".*" | tee test.log
+
+# Muck around with the test log to extract the benchmarks
+echo '' >> test_benchmark.log
+date >> test_benchmark.log
+grep 'ns/op' test.log >> test_benchmark.log

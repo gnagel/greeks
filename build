@@ -1,0 +1,24 @@
+#!/bin/sh
+
+export GOPATH=$PWD/
+
+# Make sure the dependencies are setup
+# Import the script into this namespace
+. ./configure
+
+# Cleanup and format the code
+# This will break on any syntax errors
+
+echo "......................"
+echo "Formatting the code .."
+echo "......................"
+echo ""
+go fmt ./greeks/...
+
+# Build the app
+
+echo "......................"
+echo "Building Greeks ......"
+echo "......................"
+echo ""
+# go build greeks_cli.go
