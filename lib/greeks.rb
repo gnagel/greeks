@@ -160,7 +160,7 @@ module Math
       def annualized_time_value
         @annualized_time_value ||= GreekCalculations.annualized_time_value(
           :time_value              => time_value,
-          :option_strike           => option_strike,
+          :stock_price             => stock_price,
           :option_expires_pct_year => option_expires_pct_year
         )
       end

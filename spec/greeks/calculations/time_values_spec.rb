@@ -7,6 +7,16 @@ describe "Math::GreekCalculations::misc_price_ratio_log_less_rates" do
   let(:stock_price) { 10.00 }
   let(:stock_dividend_rate_f) { 0.00 }
   let(:option_expires_pct_year) { 1.00 }
+  
+  it "Break Even Call" do
+    value = break_even({:option_type => :call, :option_expires_pct_year => 1.0, :option_expires_pct_year_sqrt => 1.0, :option_price => 2.0, :option_strike => 3.0, :stock_price => 4.0, :stock_dividend_rate_f => 5.0, :federal_reserve_interest_rate_f => 6.0, :iv => 7.0})
+    value.round(5).should === 0.000350766161827831.round(5)
+  end
+  
+  it "Break Even Put" do 
+    value = break_even({:option_type => :put, :option_expires_pct_year => 1.0, :option_expires_pct_year_sqrt => 1.0, :option_price => 2.0, :option_strike => 3.0, :stock_price => 4.0, :stock_dividend_rate_f => 5.0, :federal_reserve_interest_rate_f => 6.0, :iv => 7.0})
+    value.round(5).should === 0.999208650294576.round(5)
+  end
 
   context "exactly at the money" do
     let(:option_strike) { 10.00 }
