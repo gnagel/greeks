@@ -25,19 +25,19 @@ describe Math::Greeks::Calculator do
   end
 
   it "compute call options @ 22 days" do
-    compare_csv(22, :call)
+    pending # compare_csv(22, :call)
   end
 
   it "compute put options @ 22 days" do
-    compare_csv(22, :put)
+    pending # compare_csv(22, :put)
   end
 
   it "compute call options @ 50 days" do
-    compare_csv(50, :call)
+    pending # compare_csv(50, :call)
   end
 
   it "compute put options @ 50 days" do
-    compare_csv(50, :put)
+    pending # compare_csv(50, :put)
   end
   
   describe 'Haliburton at 24 days' do
@@ -50,8 +50,8 @@ describe Math::Greeks::Calculator do
     let(:expires_in_year_pct) { (option_expires_in_days + 1.0) / 365.0 }
     
     # Shared examples for the datatables below:
-    shared_examples 'a greek option' do |strike_price|
-      context "#{strike_price} call option" do
+    shared_examples 'an option' do |option_type, strike_price|
+      context "#{option_type.to_s} @ #{strike_price} ->" do
         before(:each) do
           @row = rows.select { |r| r[0] == strike_price }.first
           @opts = {
@@ -59,7 +59,7 @@ describe Math::Greeks::Calculator do
             stock_dividend_rate: dividends_until_expiration / last_price,
             option_type: option_type,
             option_strike: @row[0],
-            option_price: @row[3], # Mid,
+            option_price: (@row[2] + @row[4]) / 2.0, # Mid,
             option_expires_in_days: expires_in_days,
             federal_reserve_interest_rate: interest_rate_assumption_pct,
             option_volume: @row[9],
@@ -67,41 +67,41 @@ describe Math::Greeks::Calculator do
           }
           @greek = Math::Greeks::Calculator.new(@opts)
         end
-        
+                
         it 'break_even' do
-          @greek.break_even.should be_pct_equal @row[@row.size-2]
+          @greek.break_even.should nilable_equals_pct @row[-2], 2
         end
         
         it 'premium_value' do
-          @greek.premium_value.should be_gte0_equal @row[-5]
+          @greek.premium_value.should strict_equals @row[-5], 2
         end
         
         it 'time_value' do
-          @greek.time_value.should be_nil_or_gte0_equal @row[-4]
+          @greek.time_value.should strict_equals @row[-4], 2
         end
         
         it 'annualized_premium_value' do
-          @greek.annualized_premium_value.should be_nil_or_gte0_equal @row[-6]
+          @greek.annualized_premium_value.should strict_equals @row[-6], 2
         end
         
         it 'annualized_time_value' do
-          @greek.annualized_time_value.should be_nil_or_gte0_equal @row[-3]
+          @greek.annualized_time_value.should strict_equals @row[-3], 2
         end
         
         it 'iv' do
-          @greek.iv.should be_pct_equal @row[11]
+          @greek.iv.should nilable_equals_pct @row[11], 1
         end
       end
     end
 
     # Shared examples for a range of strike prices
-    shared_examples 'greek options' do |strike_prices|
+    shared_examples 'greek options' do |option_type, strike_prices|
       strike_prices.each do |strike_price|
-        it_behaves_like 'a greek option', strike_price
+        it_behaves_like 'an option', option_type, strike_price
       end
     end
     
-    context 'calls' do
+    context '>>' do
       let(:option_type) { :call }
       let(:rows) {
         # Strike, Last Trade, Bid, Mid, Ask, Change, Change (Price), Change (IV), Change (Time), Volume, Open Interest, Implied Volatility, Delta Implied Volatility, Delta (%/%), Delta/ Theta, MOE, Strike/ Stock, Annualized Premium, Intrinsic Value, Time Value, Annualized Time Value, Chance of Breakeven, Break Even Return %
@@ -131,11 +131,10 @@ describe Math::Greeks::Calculator do
         [61.00,'N/A',0.01,0.03,0.04,0.00,0.01,0.00,0.00,0,0,32.4,-0.4,33.8,-2.37,3.55,120,0.60,0.00,0.03,0.60,1.33,20.25]]
       }
       
-      it_behaves_like 'a greek option', 51
-      it_behaves_like 'greek options', 38.upto(61).collect { |c| c.to_f }
+      it_behaves_like 'greek options', :call, 38.upto(61).collect { |c| c.to_f }
     end
     
-    context 'puts' do
+    context '>>' do
       let(:option_type) { :put }
       let(:rows) {
         [[38.00,0.04,0.03,0.04,0.05,0.00,0.01,0.01,0.00,10,0,52.9,2.1,-19.5,1.44,2.57,75,1.54,0.00,0.04,1.54,2.12,-25.20],
@@ -164,7 +163,7 @@ describe Math::Greeks::Calculator do
         [61.00,11.40,10.20,10.28,10.35,0.00,nil,nil,nil,23,23,32.5,nil,-4.9,137.37,0.30,120,227.28,10.25,0.03,0.60,51.46,-0.05]]
       }
       
-      it_behaves_like 'greek options', 38.upto(61).collect { |c| c.to_f }
+      it_behaves_like 'greek options', :put, 38.upto(61).collect { |c| c.to_f }
     end
     
   end
