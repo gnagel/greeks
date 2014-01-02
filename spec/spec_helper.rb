@@ -1,18 +1,21 @@
+$:.push File.expand_path("../lib", File.dirname(__FILE__))
 require 'rubygems'
+require 'greeks'
+
 require 'rspec'
 require 'rspec-expectations'
 require 'benchmark'
 require 'require_all'
 require 'csv'
-
-$:.push File.expand_path("../lib", File.dirname(__FILE__))
-require 'greeks'
+require 'rantly/property'
+require 'rantly/rspec_extensions'
+require 'pry'
+require 'pry-nav'
 
 $spec_root = File.dirname(__FILE__)
 
 require_all File.join($spec_root, 'support')
 require_all File.join($spec_root, 'helpers')
-
 
 RSpec.configure do |config|
   config.include Math::GreekCalculationShorthandHelpers

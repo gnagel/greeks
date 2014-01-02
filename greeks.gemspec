@@ -2,7 +2,7 @@
 
 Gem::Specification.new do |gem|
   gem.name          = "greeks"
-  gem.version       = '1.3'
+  gem.version       = '1.4'
   gem.authors       = ["Glenn Nagel"]
   gem.email         = ["glenn@mercury-wireless.com"]
   gem.homepage      = "https://github.com/gnagel/greeks"
@@ -15,10 +15,6 @@ Gem::Specification.new do |gem|
   gem.test_files    = gem.files.grep(%r{^(test|spec|features)/})
   gem.require_paths = ["lib", "tasks"]
 
-  # System
   gem.add_dependency('require_all')
   gem.add_dependency('hash_plus', '>= 1.3')
-
-  gem.add_development_dependency('rspec')
-  gem.add_development_dependency('rspec-expectations')
 end
