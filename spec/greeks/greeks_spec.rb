@@ -49,63 +49,56 @@ describe Math::Greeks::Calculator do
     let(:expires_in_days) { 24 }
     let(:expires_in_year_pct) { (option_expires_in_days + 1.0) / 365.0 }
     
-    # Shared examples for the datatables below:
-    shared_examples 'an option' do |option_type, strike_price|
-      context "#{option_type.to_s} @ #{strike_price} ->" do
-        before(:each) do
-          @row = rows.select { |r| r[0] == strike_price }.first
-          @opts = {
-            stock_price: last_price,
-            stock_dividend_rate: dividends_until_expiration / last_price,
-            option_type: option_type,
-            option_strike: @row[0],
-            option_price: (@row[2] + @row[4]) / 2.0, # Mid,
-            option_expires_in_days: expires_in_days,
-            federal_reserve_interest_rate: interest_rate_assumption_pct,
-            option_volume: @row[9],
-            option_open_interest: @row[10]
-          }
-          @greek = Math::Greeks::Calculator.new(@opts)
-        end
-                
-        it 'break_even' do
-          @greek.break_even.should nilable_equals_pct @row[-2], 2
-        end
-        
-        it 'premium_value' do
-          @greek.premium_value.should strict_equals @row[-5], 2
-        end
-        
-        it 'time_value' do
-          @greek.time_value.should strict_equals @row[-4], 2
-        end
-        
-        it 'annualized_premium_value' do
-          @greek.annualized_premium_value.should strict_equals @row[-6], 2
-        end
-        
-        it 'annualized_time_value' do
-          @greek.annualized_time_value.should strict_equals @row[-3], 2
-        end
-        
-        it 'iv' do
-          @greek.iv.should nilable_equals_pct @row[11], 1
-        end
-      end
-    end
-
     # Shared examples for a range of strike prices
-    shared_examples 'greek options' do |option_type, strike_prices|
-      strike_prices.each do |strike_price|
-        it_behaves_like 'an option', option_type, strike_price
+    shared_examples 'options' do |option_type, rows|
+      rows.each do |row|
+        context "#{option_type.to_s} @ #{row.first} ->" do
+          before(:each) do
+            @opts = {
+              stock_price: last_price,
+              stock_dividend_rate: dividends_until_expiration / last_price,
+              option_type: option_type,
+              option_strike: row[0],
+              option_price: (row[2] + row[4]) / 2.0, # Mid,
+              option_expires_in_days: expires_in_days,
+              federal_reserve_interest_rate: interest_rate_assumption_pct,
+              option_volume: row[9],
+              option_open_interest: row[10]
+            }
+            @greek = Math::Greeks::Calculator.new(@opts)
+          end
+                
+          it 'break_even' do
+            @greek.break_even.should nilable_equals_pct row[-2], 2
+          end
+        
+          it 'premium_value' do
+            @greek.premium_value.should strict_equals row[-5], 2
+          end
+        
+          it 'time_value' do
+            @greek.time_value.should strict_equals row[-4], 2
+          end
+        
+          it 'annualized_premium_value' do
+            @greek.annualized_premium_value.should strict_equals row[-6], 2
+          end
+        
+          it 'annualized_time_value' do
+            @greek.annualized_time_value.should strict_equals row[-3], 2
+          end
+        
+          it 'iv' do
+            @greek.iv.should nilable_equals_pct row[11], 1
+          end
+        end
       end
     end
     
     context '>>' do
-      let(:option_type) { :call }
-      let(:rows) {
-        # Strike, Last Trade, Bid, Mid, Ask, Change, Change (Price), Change (IV), Change (Time), Volume, Open Interest, Implied Volatility, Delta Implied Volatility, Delta (%/%), Delta/ Theta, MOE, Strike/ Stock, Annualized Premium, Intrinsic Value, Time Value, Annualized Time Value, Chance of Breakeven, Break Even Return %
-        [[38.00,12.50,12.75,12.80,12.85,0.00,0.33,0.33,0.03,1,64,55.2,-24.7,3.9,-73.50,0.20,75,423.85,12.75,0.05,1.92,46.85,0.10],
+      # Strike, Last Trade, Bid, Mid, Ask, Change, Change (Price), Change (IV), Change (Time), Volume, Open Interest, Implied Volatility, Delta Implied Volatility, Delta (%/%), Delta/ Theta, MOE, Strike/ Stock, Annualized Premium, Intrinsic Value, Time Value, Annualized Time Value, Chance of Breakeven, Break Even Return %
+      @option_calls = [
+        [38.00,12.50,12.75,12.80,12.85,0.00,0.33,0.33,0.03,1,64,55.2,-24.7,3.9,-73.50,0.20,75,423.85,12.75,0.05,1.92,46.85,0.10],
         [39.00,12.25,11.75,11.80,11.85,0.00,0.32,0.33,0.03,39,39,50.8,-23.3,4.2,-75.04,0.20,77,385.93,11.75,0.05,1.87,47.06,0.10],
         [40.00,'N/A',10.75,10.80,10.85,0.00,0.32,0.33,0.03,0,0,46.5,-21.9,4.6,-76.76,0.20,79,348.96,10.75,0.05,1.82,47.25,0.10],
         [41.00,'N/A',9.75,9.80,9.85,0.00,0.32,0.33,0.03,0,0,42.3,-20.6,5.1,-78.69,0.20,81,312.91,9.75,0.05,1.78,47.44,0.10],
@@ -128,17 +121,16 @@ describe Math::Greeks::Calculator do
         [58.00,0.11,0.06,0.07,0.08,0.00,0.02,0.01,0.01,11,11,29.4,-0.7,32.5,-3.08,0.88,114,1.76,0.00,0.07,1.76,3.68,14.42],
         [59.00,0.09,0.04,0.05,0.06,0.00,0.01,0.01,0.01,14,18,30.5,-0.6,32.9,-2.80,1.22,116,1.24,0.00,0.05,1.24,2.64,16.35],
         [60.00,0.06,0.02,0.03,0.04,0.00,0.01,0.00,0.00,4,34,30.7,-0.5,34.9,-2.58,1.91,118,0.73,0.00,0.03,0.73,1.67,18.29],
-        [61.00,'N/A',0.01,0.03,0.04,0.00,0.01,0.00,0.00,0,0,32.4,-0.4,33.8,-2.37,3.55,120,0.60,0.00,0.03,0.60,1.33,20.25]]
-      }
+        [61.00,'N/A',0.01,0.03,0.04,0.00,0.01,0.00,0.00,0,0,32.4,-0.4,33.8,-2.37,3.55,120,0.60,0.00,0.03,0.60,1.33,20.25]
+      ]
       
-      it_behaves_like 'greek options', :call, 38.upto(61).collect { |c| c.to_f }
+      it_behaves_like 'options', :call, @option_calls
     end
     
     context '>>' do
-      let(:option_type) { :put }
-      let(:rows) {
-        [[38.00,0.04,0.03,0.04,0.05,0.00,0.01,0.01,0.00,10,0,52.9,2.1,-19.5,1.44,2.57,75,1.54,0.00,0.04,1.54,2.12,-25.20],
-        [39.00,0.09,0.04,0.05,0.06,0.00,nil,nil,nil,370,333,nil,nil,nil,nil,nil,77,nil,0.00,nil,nil,nil,nil],
+      @option_puts = [
+        [38.00,0.04,0.03,0.04,0.05,0.00,0.01,0.01,0.00,10,0,52.9,2.1,-19.5,1.44,2.57,75,1.54,0.00,0.04,1.54,2.12,-25.20],
+        # [39.00,0.09,0.04,0.05,0.06,0.00,nil,nil,nil,370,333,nil,nil,nil,nil,nil,77,nil,0.00,nil,nil,nil,nil],
         [40.00,0.09,0.04,0.05,0.06,0.00,0.01,0.02,0.01,10,12,46.2,2.0,-21.5,1.72,1.86,79,1.82,0.00,0.05,1.82,2.74,-21.28],
         [41.00,0.07,0.05,0.06,0.07,0.00,0.01,0.02,0.01,7,48,43.3,2.0,-22.3,1.90,1.50,81,2.14,0.00,0.06,2.14,3.31,-19.33],
         [42.00,0.08,0.06,0.07,0.08,0.00,0.01,0.02,0.01,39,144,40.3,1.9,-23.4,2.12,1.22,83,2.43,0.00,0.07,2.43,3.92,-17.38],
@@ -160,10 +152,10 @@ describe Math::Greeks::Calculator do
         [58.00,'N/A',7.25,7.30,7.35,0.00,nil,nil,nil,0,0,27.8,nil,-6.7,83.53,0.20,114,173.08,7.25,0.05,1.26,50.91,-0.10],
         [59.00,'N/A',8.25,8.30,8.35,0.00,nil,nil,nil,0,0,30.7,nil,-5.9,80.81,0.20,116,192.17,8.25,0.05,1.24,51.11,-0.10],
         [60.00,'N/A',9.20,9.28,9.35,0.00,nil,nil,nil,0,0,30.0,nil,-5.4,140.41,0.30,118,209.86,9.25,0.03,0.61,51.31,-0.05],
-        [61.00,11.40,10.20,10.28,10.35,0.00,nil,nil,nil,23,23,32.5,nil,-4.9,137.37,0.30,120,227.28,10.25,0.03,0.60,51.46,-0.05]]
-      }
+        [61.00,11.40,10.20,10.28,10.35,0.00,nil,nil,nil,23,23,32.5,nil,-4.9,137.37,0.30,120,227.28,10.25,0.03,0.60,51.46,-0.05]
+      ]
       
-      it_behaves_like 'greek options', :put, 38.upto(61).collect { |c| c.to_f }
+      it_behaves_like 'options', :put, @option_puts
     end
     
   end
