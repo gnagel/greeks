@@ -67,7 +67,8 @@ module Math
     # value of $7, the time value ($2) divided by the strike is ($2/$40) = 5%. Annualizing that time value 
     # to a one year horizon on a continuously compounded basis yields 9.76% (2 × ln(1 + 0.05)).
     def annualized_time_value(opts)
-      return nil if opts[:time_value].nil? || opts[:time_value] < 0
+      return nil if opts[:time_value].nil? || opts[:time_value] < 0 || opts[:stock_price].nil?
+      
       opts.requires_fields(:stock_price, :option_expires_pct_year, :time_value)
       
       nil_or_gte0(100 * Math.log(1.0 + opts[:time_value] / opts[:stock_price]) / opts[:option_expires_pct_year])
