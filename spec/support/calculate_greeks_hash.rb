@@ -1,5 +1,4 @@
 require 'rspec'
-require 'rspec-expectations'
 
 RSpec::Matchers.define :be_a_greeks_hash do |expected|
   match do |actual|
@@ -33,7 +32,7 @@ RSpec::Matchers.define :be_a_greeks_hash do |expected|
     expected.should be_empty
   end
 
-  failure_message_for_should do |actual|
+  failure_message do |actual|
     "expected that #{actual.to_hash} would match values of #{expected}"
   end
 end

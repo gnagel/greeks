@@ -1,5 +1,4 @@
 require 'rspec'
-require 'rspec-expectations'
 
 RSpec::Matchers.define :nilable_equals do |expected, decimal_places|
   match do |actual|
@@ -10,7 +9,7 @@ RSpec::Matchers.define :nilable_equals do |expected, decimal_places|
     end
   end
 
-  failure_message_for_should do |actual|
+  failure_message do |actual|
     "expected that '#{actual}' would match of '#{expected}' to within '#{decimal_places}' decimal places"
   end
 end
