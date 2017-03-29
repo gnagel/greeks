@@ -3,12 +3,12 @@ require 'rubygems'
 require 'greeks'
 
 require 'rspec'
-require 'rspec-expectations'
+# require 'rspec-expectations'
 require 'benchmark'
 require 'require_all'
 require 'csv'
-require 'rantly/property'
-require 'rantly/rspec_extensions'
+# require 'rantly/property'
+# require 'rantly/rspec_extensions'
 require 'pry'
 require 'pry-nav'
 
@@ -21,6 +21,8 @@ RSpec.configure do |config|
   config.include Math::GreekCalculationShorthandHelpers
 
   old_verbose, $VERBOSE = $VERBOSE, nil
+
+  config.expect_with(:rspec) { |c| c.syntax = [:should, :expect] }
   
   def verbose_puts(s)
     return unless $VERBOSE

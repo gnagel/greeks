@@ -25,19 +25,19 @@ describe Math::Greeks::Calculator do
   end
 
   it "compute call options @ 22 days" do
-    pending # compare_csv(22, :call)
+    skip # compare_csv(22, :call)
   end
 
   it "compute put options @ 22 days" do
-    pending # compare_csv(22, :put)
+    skip # compare_csv(22, :put)
   end
 
   it "compute call options @ 50 days" do
-    pending # compare_csv(50, :call)
+    skip # compare_csv(50, :call)
   end
 
   it "compute put options @ 50 days" do
-    pending # compare_csv(50, :put)
+    skip # compare_csv(50, :put)
   end
   
   describe 'Haliburton at 24 days' do
